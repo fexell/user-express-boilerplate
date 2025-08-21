@@ -12,7 +12,6 @@ import CookieHelper from './Cookie.helper.js'
 import CustomErrorHelper from './Error.helper.js'
 import ResponseHelper from './Response.helper.js'
 import UserHelper from './User.helper.js'
-import { mongo } from 'mongoose'
 
 /**
  * @constant ExpirationTime - JWT Expiration Time

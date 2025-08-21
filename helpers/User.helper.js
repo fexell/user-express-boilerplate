@@ -1,12 +1,8 @@
 import requestIp from 'request-ip'
 
-import AuthController from '../controllers/Auth.controller.js'
-
-import RefreshTokenModel from '../models/RefreshToken.model.js'
 import UserModel from '../models/User.model.js'
 
 import CookieHelper from './Cookie.helper.js'
-import ErrorHelper from './Error.helper.js'
 import ResponseHelper from './Response.helper.js'
 
 /**
