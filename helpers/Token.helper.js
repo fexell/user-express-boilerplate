@@ -12,6 +12,7 @@ import CookieHelper from './Cookie.helper.js'
 import CustomErrorHelper from './Error.helper.js'
 import ResponseHelper from './Response.helper.js'
 import UserHelper from './User.helper.js'
+import { mongo } from 'mongoose'
 
 /**
  * @constant ExpirationTime - JWT Expiration Time
@@ -48,8 +49,8 @@ class TokenHelper {
   /**
    * @method TokenHelper.Options
    * @description JWT Options
-   * @param {*} expiresIn 
-   * @param {*} jwtId 
+   * @param {String} expiresIn 
+   * @param {String} jwtId 
    * @returns {Object}
    */
   static Options( expiresIn, jwtId ) {
@@ -64,9 +65,9 @@ class TokenHelper {
   /**
    * @method TokenHelper.Sign
    * @description Signs the JWT
-   * @param {*} payload 
-   * @param {*} expiresIn 
-   * @param {*} jwtId 
+   * @param {mongoose.ObjectId} payload 
+   * @param {String} expiresIn 
+   * @param {String} jwtId 
    * @returns {String}
    */
   static Sign( payload, expiresIn, jwtId ) {
@@ -80,8 +81,8 @@ class TokenHelper {
   /**
    * @method TokenHelper.SignAccessToken
    * @description Signs the Access Token, with the user's id as the payload
-   * @param {*} payload 
-   * @param {*} jwtId 
+   * @param {mongoose.ObjectId} payload 
+   * @param {String} jwtId 
    * @returns {String}
    */
   static SignAccessToken( payload, jwtId ) {
@@ -95,7 +96,7 @@ class TokenHelper {
   /**
    * @method TokenHelper.SignRefreshToken
    * @description Signs the Refresh Token, with the user's id as the payload
-   * @param {*} payload 
+   * @param {mongoose.ObjectId} payload 
    * @returns 
    */
   static SignRefreshToken( payload ) {
@@ -109,9 +110,9 @@ class TokenHelper {
   /**
    * @method TokenHelper.VerifyToken
    * @description Verifies the JWT
-   * @param {*} token 
-   * @param {*} expiresIn 
-   * @param {*} jwtId 
+   * @param {String} token 
+   * @param {String} expiresIn 
+   * @param {String} jwtId 
    * @returns 
    */
   static VerifyToken( token, expiresIn, jwtId ) {
@@ -127,8 +128,8 @@ class TokenHelper {
    * 
    * @method TokenHelper.VerifyAccessToken
    * @description Verifies the Access Token
-   * @param {*} token 
-   * @param {*} jwtId 
+   * @param {String} token 
+   * @param {String} jwtId 
    * @returns {Object}
    */
   static VerifyAccessToken( token, jwtId ) {
@@ -159,8 +160,8 @@ class TokenHelper {
    * @description Generates a new Access Token, and binds it to req and session
    * @param {*} req 
    * @param {*} res 
-   * @param {*} userId 
-   * @param {*} jwtId 
+   * @param {mongoose.ObjectId} userId 
+   * @param {String} jwtId 
    * @returns 
    */
   static GenerateNewAccessToken( req, res, userId, jwtId ) {
@@ -185,7 +186,7 @@ class TokenHelper {
    * 
    * @method TokenHelper.VerifyRefreshToken
    * @description Verifies the Refresh Token
-   * @param {*} token 
+   * @param {String} token 
    * @returns 
    */
   static VerifyRefreshToken( token ) {
@@ -216,10 +217,10 @@ class TokenHelper {
    * @description Generates a new Refresh Token, and binds it to req and session
    * @param {*} req 
    * @param {*} res 
-   * @param {*} userId 
+   * @param {mongoose.ObjectId} userId 
    * @param {*} ipAddress 
-   * @param {*} userAgent 
-   * @param {*} token 
+   * @param {String} userAgent 
+   * @param {String} token 
    * @returns 
    */
   static async GenerateNewRefreshToken( req, res, userId, token ) {
@@ -249,8 +250,8 @@ class TokenHelper {
    * @param {*} req 
    * @param {*} res 
    * @param {*} next 
-   * @param {*} lean 
-   * @param {*} isRevoked 
+   * @param {Boolean} lean 
+   * @param {Boolean} isRevoked 
    * @returns 
    */
   static async GetRefreshTokenRecord( req, res, next, lean = false, isRevoked = false ) {
@@ -278,8 +279,8 @@ class TokenHelper {
   /**
    * @method TokenHelper.ValidateAndDecodeToken - Validate And Decode Token method
    * @param {*} req 
-   * @param {*} token 
-   * @param {*} type 
+   * @param {String} token 
+   * @param {String} type 
    * @returns 
    */
   static ValidateAndDecodeToken( req, token, type ) {
