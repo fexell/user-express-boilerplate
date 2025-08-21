@@ -108,12 +108,17 @@ class AuthMiddleware {
    */
   static async AlreadyLoggedIn( req, res, next ) {
     try {
+
+      // Get all stored user data
       const userId                          = UserHelper.GetUserId( req, res )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
+      const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
 
-      if( userId && accessToken ) 
+      // If all the data was found, the user is already logged in
+      if( userId && accessToken && refreshTokenId ) 
         throw new CustomErrorHelper( req.t('user.alreadyLoggedIn') )
 
+      // Continue to the next middleware or route
       return next()
 
     } catch ( error ) {
@@ -121,10 +126,29 @@ class AuthMiddleware {
     }
   }
 
+  /**
+   * @method AuthMiddleware.AlreadyLoggedOut
+   * @description Authentication middleware, checking whether the user is already logged out
+   * @param {*} req 
+   * @param {*} res 
+   * @param {*} next 
+   * @returns 
+   */
   static async AlreadyLoggedOut( req, res, next ) {
     try {
+
+      // Get all stored user data
       const userId                          = UserHelper.GetUserId( req, res )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
+      const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
+
+      // If nothing was found, the user is already logged out
+      if( !userId && !accessToken && !refreshTokenId )
+        throw new CustomErrorHelper( req.t('user.alreadyLoggedOut') )
+
+      // Continue to the next middleware or route
+      return next()
+
     } catch ( error ) {
       return next( error )
     }
@@ -139,14 +163,19 @@ class AuthMiddleware {
   static RoleChecker( roles = [] ) {
     return async ( req, res, next ) => {
       try {
+
+        // Get the user's record (in the database)
         const user                          = await UserHelper.GetUserById( UserHelper.GetUserId( req, res ), true )
 
+        // If roles is a string, and the user is not the required role
         if( typeof roles === 'string' && roles !== user.role )
           throw new CustomErrorHelper( req.t('user.notAuthorized') )
 
+        // Else if roles is an array, and the user's role is not in the required roles
         else if( Array.isArray( roles ) && !roles.includes( user.role ) )
           throw new CustomErrorHelper( req.t('user.notAuthorized') )
 
+        // Continue to the next middleware or route
         return next()
 
       } catch ( error ) {
