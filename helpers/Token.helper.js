@@ -284,13 +284,17 @@ class TokenHelper {
    */
   static ValidateAndDecodeToken( req, token, type ) {
     try {
+
+      // Depending on the type, validate and decode the token
       const decodedToken                    = type === 'access'
         ? this.VerifyAccessToken( token, req.jwtId || req.session.jwtId )
         : this.VerifyRefreshToken( token )
 
+      // If the token is not valid, return null
       if(!decodedToken || !decodedToken.userId)
         return null
 
+      // If the token is valid, return the decoded token
       return decodedToken
 
     } catch ( error ) {
