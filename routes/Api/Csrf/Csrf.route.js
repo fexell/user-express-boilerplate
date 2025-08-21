@@ -1,0 +1,19 @@
+import { Router } from 'express'
+
+import { CsrfProtectionMiddleware } from '../../../configs/Security.config.js'
+
+import ResponseHelper from '../../../helpers/Response.helper.js'
+
+const CsrfRouter                            = Router()
+
+CsrfRouter.get('/', async ( req, res, next ) => {
+  try {
+    return ResponseHelper.Success( res, 'CSRF token generated', CsrfProtectionMiddleware.generateToken( req ), 'token' )
+  } catch ( error ) {
+    next( error )
+  }
+})
+
+export {
+  CsrfRouter as default,
+}

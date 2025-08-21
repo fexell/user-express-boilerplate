@@ -1,0 +1,50 @@
+{
+  "user.created": "User created successfully.",
+
+  "user.notFound": "User not found.",
+  "user.id.invalid": "User ID is invalid.",
+  "user.id.notFound": "User ID not found.",
+  "user.alreadyLoggedIn": "User is already logged in.",
+  "user.alreadyLoggedOut": "User is already logged out.",
+  "user.unauthorized": "This route is protected, and you are not authorized to access it.",
+  "user.notAuthenticated": "User is not authenticated.",
+
+  "user.found": "User found successfully.",
+  
+  "user.login.success": "User logged in successfully.",
+  "user.login.failed": "User login failed.",
+
+  "user.logout.success": "User logged out successfully.",
+  "user.logout.forced": "User logged out successfully.",
+  
+  "email.required": "Email is required.",
+  "email.taken": "Email is already taken.",
+
+  "username.required": "Username is required.",
+  "username.invalid": "Username is invalid.",
+  "username.taken": "Username is already taken.",
+  "username.minlength": "Username must be at least 3 characters long.",
+  "username.maxlength": "Username must be at most 20 characters long.",
+
+  "forename.required": "Forename is required.",
+  "forename.invalid": "Forename is invalid.",
+  "forename.minlength": "Forename must be at least 3 characters long.",
+
+  "surname.required": "Surname is required.",
+  "surname.invalid": "Surname is invalid.",
+  "surname.minlength": "Surname must be at least 3 characters long.",
+
+  "password.required": "Password is required.",
+  "password.invalid": "Password is invalid.",
+  "password.mismatch": "Passwords do not match.",
+  "password.minlength": "Password must be at least 6 characters long.",
+  "password.maxlength": "Password must be at most 64 characters long.",
+
+  "accessToken.invalid": "Access token is invalid.",
+
+  "refreshToken.notFound": "Refresh token not found.",
+  "refreshToken.invalidOrExpired": "Refresh token is invalid or expired.",
+
+  "refreshTokenId.invalid": "Refresh token ID is invalid.",
+  "refreshTokenId.notFound": "Refresh token ID not found."
+}
