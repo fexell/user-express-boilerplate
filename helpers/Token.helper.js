@@ -262,11 +262,11 @@ class TokenHelper {
         throw new CustomErrorHelper( req.t( 'user.notAuthenticated' ) )
 
       const refreshTokenRecord              = !lean
-        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked })
-        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean()
+        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }) || null
+        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean() || null
 
-      if( !refreshTokenRecord && ( refreshTokenRecord && refreshTokenRecord.isRevoked ) )
-        return AuthController.Logout( req, res, next, true )
+      /* if( !refreshTokenRecord && ( refreshTokenRecord && refreshTokenRecord.isRevoked ) )
+        return AuthController.Logout( req, res, next, true ) */
 
       return refreshTokenRecord
 

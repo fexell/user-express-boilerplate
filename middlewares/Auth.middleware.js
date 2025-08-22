@@ -59,6 +59,11 @@ class AuthMiddleware {
 
         // Get the refresh token record, and then try to decode the refresh token
         const refreshTokenRecord            = await TokenHelper.GetRefreshTokenRecord( req, res, next )
+
+        // If the refresh token is not found, logout the user
+        if( !refreshTokenRecord )
+          return AuthController.Logout( req, res, next, true )
+
         const decodedRefreshToken           = TokenHelper.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
 
         // If the refresh token is not valid, logout the user
@@ -247,7 +252,7 @@ class AuthMiddleware {
 
       const refreshTokenRecord              = await TokenHelper.GetRefreshTokenRecord( req, res, next, true, true )
 
-      if( refreshTokenRecord?.isRevoked )
+      if( refreshTokenRecord && refreshTokenRecord.isRevoked )
         throw new CustomErrorHelper( req.t('token.revoked') )
 
       return next()
