@@ -48,7 +48,7 @@ class AuthController {
 
       req.jwtId                             = req.session.jwtId                          = jwtId
       req.user                              = req.session.user                           = user
-      req.userId                            = req.session.userId                         = user._id
+      // req.userId                            = req.session.userId                         = user._id
 
       return ResponseHelper.Success( res, req.t('user.login.success'), UserModel.SerializeUser( user ), 'user' )
 

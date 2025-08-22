@@ -230,7 +230,7 @@ class AuthMiddleware {
   static async IsAccountActive( req, res, next ) {
     try {
 
-      const email                           = UserHelper.GetUserEmail( req, res ) || req.body?.email || req.query?.email
+      const email                           = UserHelper.GetUserEmail( req, res )
 
       if( !email )
         throw new CustomErrorHelper( req.t('email.notFound') )

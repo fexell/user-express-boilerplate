@@ -18,6 +18,7 @@
  */
 const TimeHelper                            = {
   FiveSeconds                               : 1000 * 5, // 5 seconds
+  EightSeconds                              : 1000 * 8, // 8 seconds
   TenSeconds                                : 1000 * 10, // 10 seconds
   OneMinute                                 : 1000 * 60, // 1 minute
   ThreeMinutes                              : 1000 * 60 * 3, // 3 minutes

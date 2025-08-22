@@ -20,7 +20,7 @@ import UserHelper from './User.helper.js'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '3m', // 3 minutes
+  ACCESS_TOKEN                              : '8s' || '3m', // 3 minutes
   REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
@@ -148,7 +148,7 @@ class TokenHelper {
    */
   static GetAccessToken( req, res ) {
     try {
-      return req.accessToken || req.session.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
+      return CookieHelper.GetAccessTokenCookie( req, res )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -170,7 +170,7 @@ class TokenHelper {
 
       const accessToken                     = this.SignAccessToken( userId, jwtId )
 
-      req.accessToken                       = req.session.accessToken                    = accessToken
+      // req.accessToken                       = req.session.accessToken                    = accessToken
 
       CookieHelper.SetAccessTokenCookie( res, accessToken )
 
@@ -205,7 +205,7 @@ class TokenHelper {
    */
   static GetRefreshTokenId( req, res ) {
     try {
-      return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
+      return CookieHelper.GetRefreshTokenIdCookie( req, res )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -233,7 +233,7 @@ class TokenHelper {
 
       await newRefreshTokenRecord.save()
 
-      req.refreshTokenId                    = req.session.refreshTokenId                 = newRefreshTokenRecord._id
+      // req.refreshTokenId                    = req.session.refreshTokenId                 = newRefreshTokenRecord._id
 
       CookieHelper.SetRefreshTokenIdCookie( res, newRefreshTokenRecord._id )
 
@@ -261,12 +261,11 @@ class TokenHelper {
       if( !userId && !refreshTokenId )
         throw new CustomErrorHelper( req.t( 'user.notAuthenticated' ) )
 
-      const refreshTokenRecord              = !lean
-        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }) || null
-        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean() || null
+      console.log( userId, refreshTokenId )
 
-      /* if( !refreshTokenRecord && ( refreshTokenRecord && refreshTokenRecord.isRevoked ) )
-        return AuthController.Logout( req, res, next, true ) */
+      const refreshTokenRecord              = !lean
+        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked })
+        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean()
 
       return refreshTokenRecord
 
