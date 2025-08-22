@@ -4,21 +4,21 @@
   "user.notFound": "User not found.",
   "user.id.invalid": "User ID is invalid.",
   "user.id.notFound": "User ID not found.",
-  "user.alreadyLoggedIn": "User is already logged in.",
-  "user.alreadyLoggedOut": "User is already logged out.",
+  "user.alreadyLoggedIn": "You are already logged in.",
+  "user.alreadyLoggedOut": "You are already logged out.",
   "user.unauthorized": "This route is protected, and you are not authorized to access it.",
-  "user.notAuthenticated": "User is not authenticated.",
+  "user.notAuthenticated": "You are not authenticated.",
 
   "user.found": "User found successfully.",
   
-  "user.login.success": "User logged in successfully.",
-  "user.login.failed": "User login failed.",
+  "user.login.success": "You are now logged in.",
+  "user.login.failed": "Login failed.",
 
-  "user.logout.success": "User logged out successfully.",
-  "user.logout.forced": "User logged out successfully.",
+  "user.logout.success": "You are now logged out.",
+  "user.logout.forced": "You have been logged out.",
   
   "email.required": "Email is required.",
-  "email.taken": "Email is already taken.",
+  "email.taken": "Email is already in use.",
 
   "username.required": "Username is required.",
   "username.invalid": "Username is invalid.",

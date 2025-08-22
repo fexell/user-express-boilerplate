@@ -48,6 +48,7 @@ class AuthMiddleware {
         if( decodedAccessToken.userId.toString() !== userId.toString() )
           return AuthController.Logout( req, res, next, true )
 
+        // Continue to the next middleware or route
         return next()
 
       // If the access token is not valid, check if the refresh token is valid
@@ -59,16 +60,17 @@ class AuthMiddleware {
 
         // If the refresh token is not valid, logout the user
         if( !decodedRefreshToken )
-          throw new CustomErrorHelper( req.t('user.notAuthenticated') )
+          return AuthController.Logout( req, res, next, true )
+
+        // If the user id from the decoded refresh token does not match the user id from the session, logout the user
+        if( decodedRefreshToken.userId.toString() !== userId.toString() )
+          return AuthController.Logout( req, res, next, true )
 
         // Revoke the current refresh token
         refreshTokenRecord.isRevoked        = true
 
         // Save the old refresh token
         await refreshTokenRecord.save()
-
-        if( decodedRefreshToken.userId.toString() !== userId.toString() )
-          return AuthController.Logout( req, res, next, true )
 
         // Sign a new refresh token
         const newRefreshToken               = TokenHelper.SignRefreshToken( userId )
