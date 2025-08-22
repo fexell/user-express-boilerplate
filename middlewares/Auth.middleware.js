@@ -18,6 +18,7 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @method AuthMiddleware.AlreadyLoggedIn - Authentication middleware, checking whether the user is already logged in
  * @method AuthMiddleware.AlreadyLoggedOut - Authentication middleware, checking whether the user is already logged out
  * @method AuthMiddleware.RoleChecker - Authorization middleware, checking whether the user has the required role to access the route
+ * @method AuthMiddleware.IsEmailVerified - Authentication middleware, checking whether the user's email address is verified
  */
 class AuthMiddleware {
 
@@ -38,7 +39,7 @@ class AuthMiddleware {
 
       // Check if the user has the user id and access token stored in either session or cookie
       if( !userId && !accessToken )
-        throw new CustomErrorHelper( req.t('user.notAuthenticated') )
+        throw new CustomErrorHelper( req.t('route.protected') )
 
       // Validate the access token
       const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
@@ -185,6 +186,74 @@ class AuthMiddleware {
       } catch ( error ) {
         return next( error )
       }
+    }
+  }
+
+  /**
+   * @method AuthMiddleware.IsEmailVerified
+   * @description Authentication middleware, checking whether the user's email address is verified
+   * @param {*} req 
+   * @param {*} res 
+   * @param {*} next 
+   * @returns 
+   */
+  static async IsEmailVerified( req, res, next ) {
+    try {
+
+      // Get the user's email
+      const email                           = UserHelper.GetUserEmail( req, res )
+
+      // If the email was not found
+      if( !email )
+        throw new CustomErrorHelper( req.t('email.notFound') )
+
+      // Get the user's record, by their email
+      const user                            = await UserHelper.GetUserByEmail( res, email )
+
+      // If the user's email is not verified
+      if( !user.isEmailVerified )
+        throw new CustomErrorHelper( req.t('email.notVerified') )
+
+      // Continue to the next middleware or route
+      return next()
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async IsAccountActive( req, res, next ) {
+    try {
+
+      const email                           = UserHelper.GetUserEmail( req, res ) || req.body?.email || req.query?.email
+
+      if( !email )
+        throw new CustomErrorHelper( req.t('email.notFound') )
+
+      const user                            = await UserHelper.GetUserByEmail( res, email )
+
+      if( !user.isActive )
+        throw new CustomErrorHelper( req.t('user.notActive') )
+
+      return next()
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async IsRefreshTokenRevoked( req, res, next ) {
+    try {
+
+      const refreshTokenRecord              = await TokenHelper.GetRefreshTokenRecord( req, res, next, true, true )
+
+      if( refreshTokenRecord?.isRevoked )
+        throw new CustomErrorHelper( req.t('token.revoked') )
+
+      return next()
+      
+    } catch ( error ) {
+      return next( error )
     }
   }
 }

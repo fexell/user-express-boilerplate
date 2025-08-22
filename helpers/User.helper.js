@@ -31,6 +31,14 @@ class UserHelper {
     }
   }
 
+  static GetUserEmail( req, res ) {
+    try {
+      return req.user?.email || req.session?.user?.email || req.params.email || req.body?.email || req.query?.email
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
   /**
    * @method UserHelper.GetIpAddress - Get the user's ip address
    * @param {*} req 
@@ -89,7 +97,7 @@ class UserHelper {
    * @param {*} withPassword - Whether to return the password or not
    * @returns {Mongoose.Document}
    */
-  static async GetUserByEmail( email, lean = false, withPassword = false ) {
+  static async GetUserByEmail( res, email, lean = false, withPassword = false ) {
     try {
       return !lean
         ? !withPassword

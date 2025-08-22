@@ -24,7 +24,7 @@ class AuthController {
       else if(!password)
         throw new CustomErrorHelper( req.t('password.required') )
 
-      const user                            = await UserHelper.GetUserByEmail( email, true, true )
+      const user                            = await UserHelper.GetUserByEmail( res, email, true, true )
 
       if(!user)
         throw new CustomErrorHelper( req.t('user.notFound') )
@@ -48,6 +48,7 @@ class AuthController {
 
       req.jwtId                             = req.session.jwtId                          = jwtId
       req.user                              = req.session.user                           = user
+      req.userId                            = req.session.userId                         = user._id
 
       return ResponseHelper.Success( res, req.t('user.login.success'), UserModel.SerializeUser( user ), 'user' )
 
@@ -74,6 +75,7 @@ class AuthController {
 
       delete req.session.jwtId
       delete req.session.user
+      delete req.session.userId
       delete req.session.accessToken
       delete req.session.refreshTokenId
 
@@ -84,6 +86,37 @@ class AuthController {
       return !forced
         ? ResponseHelper.Success( res, req.t('user.logout.success'))
         : ResponseHelper.Success( res, req.t('user.logout.forced'))
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async VerifyEmail( req, res, next ) {
+    try {
+      const emailVerificationToken          = req.params.token
+      const email                           = req.query?.email || req.body?.email
+
+      if( !emailVerificationToken )
+        throw new CustomErrorHelper( req.t('email.token.notFound') )
+
+      else if( !email )
+        throw new CustomErrorHelper( req.t('email.query.notFound') )
+
+      const user                            = await UserHelper.GetUserByEmail( res, email )
+
+      if( !user )
+        throw new CustomErrorHelper( req.t('user.notFound') )
+
+      else if( user.isEmailVerified )
+        throw new CustomErrorHelper( req.t('email.alreadyVerified') )
+
+      user.emailVerificationToken           = null
+      user.isEmailVerified                  = true
+
+      await user.save()
+
+      return ResponseHelper.Success( res, req.t('emailVerification.success') )
 
     } catch ( error ) {
       return next( error )

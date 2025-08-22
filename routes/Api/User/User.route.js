@@ -6,8 +6,15 @@ import AuthMiddleware from '../../../middlewares/Auth.middleware.js'
 
 const UserRouter                            = Router()
 
-UserRouter.get( '/', [ AuthMiddleware.Authenticate ], UserController.GetUser )
-UserRouter.post( '/', UserController.Create )
+UserRouter.get( '/', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.IsRefreshTokenRevoked,
+  AuthMiddleware.IsEmailVerified,
+  AuthMiddleware.IsAccountActive,
+], UserController.GetUser )
+UserRouter.post( '/', [
+  AuthMiddleware.AlreadyLoggedIn,
+], UserController.Create )
 
 export {
   UserRouter as default,

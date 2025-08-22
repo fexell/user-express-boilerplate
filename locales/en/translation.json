@@ -1,5 +1,5 @@
 {
-  "user.created": "User created successfully.",
+  "user.created": "Sign up was successful. You now need to verify your email address, before you can log in.",
 
   "user.notFound": "User not found.",
   "user.id.invalid": "User ID is invalid.",
@@ -9,7 +9,7 @@
   "user.unauthorized": "This route is protected, and you are not authorized to access it.",
   "user.notAuthenticated": "You are not authenticated.",
 
-  "user.found": "User found successfully.",
+  "user.found": "Your user details were found.",
   
   "user.login.success": "You are now logged in.",
   "user.login.failed": "Login failed.",
@@ -19,6 +19,10 @@
   
   "email.required": "Email is required.",
   "email.taken": "Email is already in use.",
+  "email.notVerified": "Your email address is not yet verified.",
+  "email.alreadyVerified": "Your email address is already verified.",
+  "email.token.notFound": "Email verification token not found.",
+  "email.query.notFound": "Email query not found.",
 
   "username.required": "Username is required.",
   "username.invalid": "Username is invalid.",
@@ -46,5 +50,7 @@
   "refreshToken.invalidOrExpired": "Refresh token is invalid or expired.",
 
   "refreshTokenId.invalid": "Refresh token ID is invalid.",
-  "refreshTokenId.notFound": "Refresh token ID not found."
+  "refreshTokenId.notFound": "Refresh token ID not found.",
+
+  "route.protected": "This route is protected, and you are not authorized to access it."
 }

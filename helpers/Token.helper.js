@@ -265,7 +265,7 @@ class TokenHelper {
         ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked })
         : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean()
 
-      if( !refreshTokenRecord )
+      if( !refreshTokenRecord && ( refreshTokenRecord && refreshTokenRecord.isRevoked ) )
         return AuthController.Logout( req, res, next, true )
 
       return refreshTokenRecord
