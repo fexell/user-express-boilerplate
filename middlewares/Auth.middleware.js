@@ -45,6 +45,8 @@ class AuthMiddleware {
 
       // If the access token is valid, return the next middleware
       if( decodedAccessToken ) {
+
+        // If the user id from the decoded access token does not match the user id from the session, logout the user
         if( decodedAccessToken.userId.toString() !== userId.toString() )
           return AuthController.Logout( req, res, next, true )
 

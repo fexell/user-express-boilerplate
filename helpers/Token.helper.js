@@ -20,8 +20,8 @@ import UserHelper from './User.helper.js'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION, // 3 minutes
-  REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION, // 30 days
+  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '3m', // 3 minutes
+  REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
 /**
@@ -73,7 +73,7 @@ class TokenHelper {
     try {
       return jwt.sign( payload, { key: PRIVATE_KEY, passphrase: JWT_SECRET }, this.Options( expiresIn, jwtId ) )
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      return ResponseHelper.Error( res, error.message )
     }
   }
 
@@ -88,7 +88,7 @@ class TokenHelper {
     try {
       return this.Sign( { userId: payload }, ExpirationTime.ACCESS_TOKEN, jwtId )
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      return ResponseHelper.Error( res, error.message )
     }
   }
 
@@ -102,7 +102,7 @@ class TokenHelper {
     try {
       return this.Sign( { userId: payload }, ExpirationTime.REFRESH_TOKEN )
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      return ResponseHelper.Error( res, error.message )
     }
   }
 
@@ -118,7 +118,7 @@ class TokenHelper {
     try {
       return jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      return ResponseHelper.Error( res, error.message )
     }
   }
 
@@ -135,7 +135,7 @@ class TokenHelper {
     try {
       return this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      return ResponseHelper.Error( res, error.message )
     }
   }
 
