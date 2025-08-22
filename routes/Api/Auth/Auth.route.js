@@ -11,8 +11,8 @@ const AuthRouter                            = Router()
 
 AuthRouter.post( '/login', [
   AuthMiddleware.AlreadyLoggedIn,
-  AuthMiddleware.IsEmailVerified,
-  AuthMiddleware.IsAccountActive,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountActive,
 ], AuthController.Login )
 
 AuthRouter.post( '/logout', [
@@ -21,8 +21,15 @@ AuthRouter.post( '/logout', [
 
 AuthRouter.put( '/email/verify/:token', [
   AuthMiddleware.AlreadyLoggedIn,
-  AuthMiddleware.IsAccountActive,
+  AuthMiddleware.AccountActive,
 ], AuthController.VerifyEmail )
+
+AuthRouter.get( '/units', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.RefreshTokenRevoked,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountActive,
+], AuthController.UnitsLoggedInOn )
 
 export {
   AuthRouter as default,

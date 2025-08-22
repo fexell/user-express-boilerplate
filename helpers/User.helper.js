@@ -33,7 +33,7 @@ class UserHelper {
 
   static GetUserEmail( req, res ) {
     try {
-      return req.user?.email || req.session?.user?.email || req.params.email || req.body?.email || req.query?.email
+      return req.user?.email || req.session.user?.email || req.params?.email || req.body?.email || req.query?.email
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }

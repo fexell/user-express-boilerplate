@@ -20,7 +20,7 @@ import UserHelper from './User.helper.js'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : '8s' || '3m', // 3 minutes
+  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '3m', // 3 minutes
   REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
@@ -170,8 +170,6 @@ class TokenHelper {
 
       const accessToken                     = this.SignAccessToken( userId, jwtId )
 
-      // req.accessToken                       = req.session.accessToken                    = accessToken
-
       CookieHelper.SetAccessTokenCookie( res, accessToken )
 
       return this.SignAccessToken( userId, jwtId || req.session.jwtId )
@@ -205,7 +203,7 @@ class TokenHelper {
    */
   static GetRefreshTokenId( req, res ) {
     try {
-      return CookieHelper.GetRefreshTokenIdCookie( req, res )
+      return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -233,8 +231,6 @@ class TokenHelper {
 
       await newRefreshTokenRecord.save()
 
-      // req.refreshTokenId                    = req.session.refreshTokenId                 = newRefreshTokenRecord._id
-
       CookieHelper.SetRefreshTokenIdCookie( res, newRefreshTokenRecord._id )
 
       return newRefreshTokenRecord
@@ -260,8 +256,6 @@ class TokenHelper {
 
       if( !userId && !refreshTokenId )
         throw new CustomErrorHelper( req.t( 'user.notAuthenticated' ) )
-
-      console.log( userId, refreshTokenId )
 
       const refreshTokenRecord              = !lean
         ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked })
@@ -290,7 +284,7 @@ class TokenHelper {
         : this.VerifyRefreshToken( token )
 
       // If the token is not valid, return null
-      if(!decodedToken || !decodedToken.userId)
+      if( !decodedToken || !decodedToken.userId )
         return null
 
       // If the token is valid, return the decoded token

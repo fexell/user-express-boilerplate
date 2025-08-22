@@ -3,7 +3,7 @@ import MongoStore from 'connect-mongo'
 
 import { NODE_ENV, MONGO_URI, SESSION_SECRET } from './Environment.config.js'
 
-const SessionMiddleware                     = session({
+const SessionMiddleware                     = session( {
   secret                                    : SESSION_SECRET,
   resave                                    : true,
   saveUninitialized                         : true,
@@ -14,7 +14,7 @@ const SessionMiddleware                     = session({
     httpOnly                                : true,
     maxAge                                  : 24 * 60 * 60 * 1000,
   },
-})
+} )
 
 export {
   SessionMiddleware as default,

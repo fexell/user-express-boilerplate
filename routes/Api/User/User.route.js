@@ -8,10 +8,11 @@ const UserRouter                            = Router()
 
 UserRouter.get( '/', [
   AuthMiddleware.Authenticate,
-  AuthMiddleware.IsRefreshTokenRevoked,
-  AuthMiddleware.IsEmailVerified,
-  AuthMiddleware.IsAccountActive,
+  AuthMiddleware.RefreshTokenRevoked,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountActive,
 ], UserController.GetUser )
+
 UserRouter.post( '/', [
   AuthMiddleware.AlreadyLoggedIn,
 ], UserController.Create )

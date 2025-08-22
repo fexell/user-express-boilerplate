@@ -20,18 +20,18 @@ const SecurityMiddlewares                   = () => [
 
 const CsrfProtectionMiddleware              = csrfSync()
 
-const LimiterMiddleware                     = rateLimit({
+const LimiterMiddleware                     = rateLimit( {
   windowMs                                  : TimeHelper.FifteenMinutes,
   max                                       : 100,
   standardHeaders                           : 'draft-8',
   legacyHeaders                             : false,
-})
+} )
 
-const SlowDownLimiterMiddleware             = slowDown({
+const SlowDownLimiterMiddleware             = slowDown( {
   windowMs                                  : TimeHelper.FifteenMinutes,
   delayAfter                                : 100,
   delayMs                                   : ( hits ) => hits * 500,
-})
+} )
 
 export {
   CookieParserMiddleware,

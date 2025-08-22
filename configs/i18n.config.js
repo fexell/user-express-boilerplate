@@ -4,11 +4,11 @@ import i18nextMiddleware from 'i18next-http-middleware'
 import path from 'path'
 
 i18next
-  .use(i18nextBackend)
-  .use(i18nextMiddleware.LanguageDetector)
+  .use( i18nextBackend )
+  .use( i18nextMiddleware.LanguageDetector )
   .init({
     backend                                 : {
-      loadPath                              : path.join(process.cwd(), 'locales', '{{lng}}', '{{ns}}.json'),
+      loadPath                              : path.join( process.cwd(), 'locales', '{{lng}}', '{{ns}}.json' ),
     },
     detection                               : {
       order                                 : [ 'querystring', 'cookie', 'header' ],
@@ -18,7 +18,7 @@ i18next
     preload                                 : [ 'en', 'sv' ],
   })
 
-const i18nMiddleware                        = i18nextMiddleware.handle(i18next)
+const i18nMiddleware                        = i18nextMiddleware.handle( i18next )
 
 export {
   i18nMiddleware as default,

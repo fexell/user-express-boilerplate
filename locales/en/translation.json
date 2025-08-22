@@ -2,14 +2,15 @@
   "user.created": "Sign up was successful. You now need to verify your email address, before you can log in.",
 
   "user.notFound": "User not found.",
-  "user.id.invalid": "User ID is invalid.",
-  "user.id.notFound": "User ID not found.",
   "user.alreadyLoggedIn": "You are already logged in.",
   "user.alreadyLoggedOut": "You are already logged out.",
   "user.unauthorized": "This route is protected, and you are not authorized to access it.",
   "user.notAuthenticated": "You are not authenticated.",
+  "user.id.invalid": "User ID is invalid.",
+  "user.id.notFound": "User ID not found.",
 
   "user.found": "Your user details were found.",
+  "user.units.found": "Units found.",
   
   "user.login.success": "You are now logged in.",
   "user.login.failed": "Login failed.",

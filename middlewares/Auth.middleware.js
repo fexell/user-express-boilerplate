@@ -18,16 +18,18 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @method AuthMiddleware.AlreadyLoggedIn - Authentication middleware, checking whether the user is already logged in
  * @method AuthMiddleware.AlreadyLoggedOut - Authentication middleware, checking whether the user is already logged out
  * @method AuthMiddleware.RoleChecker - Authorization middleware, checking whether the user has the required role to access the route
- * @method AuthMiddleware.IsEmailVerified - Authentication middleware, checking whether the user's email address is verified
+ * @method AuthMiddleware.EmailVerified - Authentication middleware, checking whether the user's email address is verified
+ * @method AuthMiddleware.AccountActive - Authentication middleware, checking whether the user's account is active
+ * @method AuthMiddleware.RefreshTokenRevoked - Authentication middleware, checking whether the refresh token is revoked
  */
 class AuthMiddleware {
 
   /**
    * @method AuthMiddleware.Authenticate
    * @description Authentication middleware, checking whether the user has access to the route
-   * @param {*} req 
-   * @param {*} res 
-   * @param {*} next 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
    * @returns 
    */
   static async Authenticate( req, res, next ) {
@@ -98,7 +100,10 @@ class AuthMiddleware {
         const newAccessToken                = TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
 
         // Save the JWT ID in both req and req.session
-        req.jwtId                           = req.session.jwtId                                       = jwtId
+        req.jwtId                           = req.session.jwtId                                      = jwtId
+        req.userId                          = req.session.userId                                     = userId 
+        req.accessToken                     = req.session.accessToken                                = newAccessToken
+        req.refreshTokenId                  = req.session.refreshTokenId                             = newRefreshTokenRecord._id
 
         // Continue to the next middleware or route
         return next()
@@ -111,9 +116,9 @@ class AuthMiddleware {
   /**
    * @method AuthMiddleware.AlreadyLoggedIn
    * @description Authentication middleware, checking whether the user is already logged in
-   * @param {*} req 
-   * @param {*} res 
-   * @param {*} next 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
    * @returns 
    */
   static async AlreadyLoggedIn( req, res, next ) {
@@ -139,9 +144,9 @@ class AuthMiddleware {
   /**
    * @method AuthMiddleware.AlreadyLoggedOut
    * @description Authentication middleware, checking whether the user is already logged out
-   * @param {*} req 
-   * @param {*} res 
-   * @param {*} next 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
    * @returns 
    */
   static async AlreadyLoggedOut( req, res, next ) {
@@ -167,7 +172,7 @@ class AuthMiddleware {
   /**
    * @method AuthMiddleware.RoleChecker
    * @description Authorization middleware, checking whether the user has the required role to access the route
-   * @param {*} roles 
+   * @param {Array|String} roles 
    * @returns 
    */
   static RoleChecker( roles = [] ) {
@@ -197,12 +202,12 @@ class AuthMiddleware {
   /**
    * @method AuthMiddleware.IsEmailVerified
    * @description Authentication middleware, checking whether the user's email address is verified
-   * @param {*} req 
-   * @param {*} res 
-   * @param {*} next 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
    * @returns 
    */
-  static async IsEmailVerified( req, res, next ) {
+  static async EmailVerified( req, res, next ) {
     try {
 
       // Get the user's email
@@ -227,19 +232,32 @@ class AuthMiddleware {
     }
   }
 
-  static async IsAccountActive( req, res, next ) {
+  /**
+   * @method AuthMiddleware.AccountActive
+   * @description Authentication middleware, checking whether the user's account is active
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
+  static async AccountActive( req, res, next ) {
     try {
 
+      // Get the user's email
       const email                           = UserHelper.GetUserEmail( req, res )
 
+      // If the email was not found
       if( !email )
         throw new CustomErrorHelper( req.t('email.notFound') )
 
+      // Get the user's record, by their email
       const user                            = await UserHelper.GetUserByEmail( res, email )
 
+      // If the user's account is not active
       if( !user.isActive )
         throw new CustomErrorHelper( req.t('user.notActive') )
 
+      // Continue to the next middleware or route
       return next()
 
     } catch ( error ) {
@@ -247,14 +265,25 @@ class AuthMiddleware {
     }
   }
 
-  static async IsRefreshTokenRevoked( req, res, next ) {
+  /**
+   * @method AuthMiddleware.RefreshTokenRevoked
+   * @description Authentication middleware, checking whether the refresh token is revoked
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
+  static async RefreshTokenRevoked( req, res, next ) {
     try {
 
+      // Get the refresh token record
       const refreshTokenRecord              = await TokenHelper.GetRefreshTokenRecord( req, res, next, true, true )
 
+      // If the refresh token is revoked
       if( refreshTokenRecord && refreshTokenRecord.isRevoked )
         throw new CustomErrorHelper( req.t('token.revoked') )
 
+      // Continue to the next middleware or route
       return next()
       
     } catch ( error ) {
