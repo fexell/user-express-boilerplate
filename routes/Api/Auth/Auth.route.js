@@ -24,7 +24,7 @@ AuthRouter.put( '/email/verify/:token', [
   AuthMiddleware.AccountInactive,
 ], AuthController.VerifyEmail )
 
-AuthRouter.get( '/units', [
+AuthRouter.get( '/find/units', [
   AuthMiddleware.Authenticate,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,

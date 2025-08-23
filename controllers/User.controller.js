@@ -187,6 +187,27 @@ class UserController {
       return next( error )
     }
   }
+
+  static async GetAllUsers( req, res, next ) {
+    try {
+
+      // Get the query to what to sort by
+      const sort                            = req.query.sort || '-createdAt'
+
+      // Find all users, sorted
+      const users                           = await UserModel.find().sort(sort).lean()
+
+      // If there are no users
+      if( !users.length )
+        throw new CustomErrorHelper( req.t('users.notFound') )
+
+      // Return the users
+      return ResponseHelper.Success( res, req.t('users.found'), 200, users.map( user => UserModel.SerializeUser( user ) ), 'users' )
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
 }
 
 export {
