@@ -14,7 +14,7 @@ import AuthMiddleware from '../../../middlewares/Auth.middleware.js'
  * @route {GET} /api/user/find/id/:id
  * @route {GET} /api/user/find/email/:email
  * @route {GET} /api/user/find/username/:username
- * @route {POST} /api/user/create
+ * @route {POST} /api/user
  * 
  * @exports UserRouter
  */
@@ -27,6 +27,7 @@ const UserRouter                            = Router()
 */
 UserRouter.get( '/find/me', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -39,6 +40,7 @@ UserRouter.get( '/find/me', [
  */
 UserRouter.get( '/find/all', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -52,6 +54,7 @@ UserRouter.get( '/find/all', [
  */
 UserRouter.get( '/find/id/:id', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -64,6 +67,7 @@ UserRouter.get( '/find/id/:id', [
  */
 UserRouter.get( '/find/email/:email', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -76,6 +80,7 @@ UserRouter.get( '/find/email/:email', [
  */
 UserRouter.get( '/find/username/:username', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,

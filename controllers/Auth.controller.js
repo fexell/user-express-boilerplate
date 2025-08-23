@@ -113,7 +113,11 @@ class AuthController {
         throw new CustomErrorHelper( req.t('user.alreadyLoggedOut') )
 
       // Attempt to find the refresh token record
-      const refreshTokenRecord              = await RefreshTokenModel.findOne( { _id: refreshTokenId, userId: userId, isRevoked: false } )
+      const refreshTokenRecord              = await RefreshTokenModel.findOne( {
+        _id                                 : refreshTokenId,
+        userId                              : userId,
+        isRevoked                           : false,
+      } )
 
       // If the refresh token record was found
       if(refreshTokenRecord) {
@@ -233,6 +237,14 @@ class AuthController {
     }
   }
 
+  /**
+   * @method AuthController.RevokeRefreshToken
+   * @description The controller method handling revoking a refresh token
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
   static async RevokeRefreshToken( req, res, next ) {
     try {
       const refreshTokenId                  = req.params.tokenId

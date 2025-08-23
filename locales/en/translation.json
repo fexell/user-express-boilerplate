@@ -18,7 +18,7 @@
 
   "user.logout.success": "You are now logged out.",
   "user.logout.forced": "You have been logged out.",
-  "user.logout.revoked": "You have been logged out, since your refresh token has been revoked.",
+  "user.logout.revoked": "You have been logged out, because your refresh token has been revoked.",
   
   "email.required": "Email is required.",
   "email.taken": "Email is already in use.",

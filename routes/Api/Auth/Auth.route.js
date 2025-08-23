@@ -35,6 +35,8 @@ AuthRouter.post( '/login', [
  * @returns {String} A success message
  */
 AuthRouter.post( '/logout', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.AlreadyLoggedOut,
 ], AuthController.Logout )
 
@@ -54,6 +56,7 @@ AuthRouter.put( '/verify/email/:token', [
  */
 AuthRouter.get( '/find/units', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -61,6 +64,7 @@ AuthRouter.get( '/find/units', [
 
 AuthRouter.put( '/unit/revoke/:tokenId', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,

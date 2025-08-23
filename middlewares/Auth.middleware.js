@@ -34,6 +34,7 @@ import TokenHelper from '../helpers/Token.helper.js'
 class AuthMiddleware {
 
   /**
+   * @memberof AuthMiddleware
    * @method AuthMiddleware.Authenticate
    * @description Authentication middleware, checking whether the user has access to the route
    * @param {Request} req 
@@ -117,6 +118,50 @@ class AuthMiddleware {
         // Continue to the next middleware or route
         return next()
       }
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async DataCheck( req, res, next ) {
+    try {
+
+      // Get the user id from session, and if req.userId is not found, get the user id from cookie
+      const userIdFromSession               = req.session.userId
+      const userIdFromCookie                = req.userId || CookieHelper.GetUserIdCookie( req, res )
+
+      // Get the access token from session, and if req.accessToken is not found, get the access token from cookie
+      const accessTokenFromSession          = req.session.accessToken
+      const accessTokenFromCookie           = req.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
+
+      // Get the refresh token id from session, and if req.refreshTokenId is not found, get the refresh token id from cookie
+      const refreshTokenIdFromSession       = req.session.refreshTokenId
+      const refreshTokenIdFromCookie        = req.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
+
+      // If the user id, access token and refresh token id from session and cookie are not the same
+      if(
+        userIdFromSession && userIdFromCookie &&
+        userIdFromSession !== userIdFromCookie
+      )
+        return AuthController.Logout( req, res, next, true )
+
+      // If the access token and refresh token id from session and cookie are not the same
+      else if(
+        accessTokenFromSession && accessTokenFromCookie &&
+        accessTokenFromSession !== accessTokenFromCookie
+      )
+        return AuthController.Logout( req, res, next, true )
+
+      // If the refresh token id from session and cookie are not the same
+      else if(
+        refreshTokenIdFromSession && refreshTokenIdFromCookie &&
+        refreshTokenIdFromSession !== refreshTokenIdFromCookie
+      )
+        return AuthController.Logout( req, res, next, true )
+
+      // Continue to the next middleware or route
+      return next()
+
     } catch ( error ) {
       return next( error )
     }
