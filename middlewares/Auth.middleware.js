@@ -19,7 +19,7 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @method AuthMiddleware.AlreadyLoggedOut - Authentication middleware, checking whether the user is already logged out
  * @method AuthMiddleware.RoleChecker - Authorization middleware, checking whether the user has the required role to access the route
  * @method AuthMiddleware.EmailVerified - Authentication middleware, checking whether the user's email address is verified
- * @method AuthMiddleware.AccountActive - Authentication middleware, checking whether the user's account is active
+ * @method AuthMiddleware.AccountInactive - Authentication middleware, checking whether the user's account is active
  * @method AuthMiddleware.RefreshTokenRevoked - Authentication middleware, checking whether the refresh token is revoked
  */
 class AuthMiddleware {
@@ -30,7 +30,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction} 
    */
   static async Authenticate( req, res, next ) {
     try {
@@ -240,7 +240,7 @@ class AuthMiddleware {
    * @param {NextFunction} next 
    * @returns 
    */
-  static async AccountActive( req, res, next ) {
+  static async AccountInactive( req, res, next ) {
     try {
 
       // Get the user's email

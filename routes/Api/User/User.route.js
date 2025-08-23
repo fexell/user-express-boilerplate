@@ -10,7 +10,7 @@ UserRouter.get( '/', [
   AuthMiddleware.Authenticate,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
-  AuthMiddleware.AccountActive,
+  AuthMiddleware.AccountInactive,
 ], UserController.GetUser )
 
 UserRouter.post( '/', [

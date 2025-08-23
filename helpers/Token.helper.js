@@ -53,6 +53,8 @@ class TokenHelper {
    * @returns {Object}
    */
   static Options( expiresIn, jwtId ) {
+
+    // Return an object with the JWT options
     return {
       issuer                              : 'UserBoilerplate',
       algorithm                           : 'RS256',
@@ -71,7 +73,10 @@ class TokenHelper {
    */
   static Sign( payload, expiresIn, jwtId ) {
     try {
+
+      // Sign the JWT
       return jwt.sign( payload, { key: PRIVATE_KEY, passphrase: JWT_SECRET }, this.Options( expiresIn, jwtId ) )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -86,7 +91,10 @@ class TokenHelper {
    */
   static SignAccessToken( payload, jwtId ) {
     try {
+
+      // Sign the Access Token, with its expiration time (3 minutes) and jsonwebtoken id
       return this.Sign( { userId: payload }, ExpirationTime.ACCESS_TOKEN, jwtId )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -100,7 +108,10 @@ class TokenHelper {
    */
   static SignRefreshToken( payload ) {
     try {
+
+      // Sign the Refresh Token with its expiration time (30 days)
       return this.Sign( { userId: payload }, ExpirationTime.REFRESH_TOKEN )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -116,7 +127,10 @@ class TokenHelper {
    */
   static VerifyToken( token, expiresIn, jwtId ) {
     try {
+
+      // Verify the JWT
       return jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -133,7 +147,10 @@ class TokenHelper {
    */
   static VerifyAccessToken( token, jwtId ) {
     try {
+
+      // Verify the Access Token
       return this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -148,7 +165,10 @@ class TokenHelper {
    */
   static GetAccessToken( req, res ) {
     try {
-      return CookieHelper.GetAccessTokenCookie( req, res )
+
+      // Get the Access Token from either req, session or cookie
+      return req.accessToken || req.session.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
+      
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -165,14 +185,20 @@ class TokenHelper {
    */
   static GenerateNewAccessToken( req, res, userId, jwtId ) {
     try {
+
+      // If the user id is not provided, throw an error
       if( !userId )
         throw new CustomErrorHelper( req.t( 'user.id.notFound' ) )
 
+      // Generate a new Access Token
       const accessToken                     = this.SignAccessToken( userId, jwtId )
 
+      // Create the Access Token cookie
       CookieHelper.SetAccessTokenCookie( res, accessToken )
 
+      // Return the signed Access Token
       return this.SignAccessToken( userId, jwtId || req.session.jwtId )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -188,7 +214,10 @@ class TokenHelper {
    */
   static VerifyRefreshToken( token ) {
     try {
+
+      // Verify the Refresh Token
       return this.VerifyToken( token, ExpirationTime.REFRESH_TOKEN )
+
     } catch ( error ) {
       throw new CustomErrorHelper( error.message )
     }
@@ -203,7 +232,10 @@ class TokenHelper {
    */
   static GetRefreshTokenId( req, res ) {
     try {
+
+      // Get the Refresh Token Id from either req, session or cookie
       return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
+
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -222,6 +254,8 @@ class TokenHelper {
    */
   static async GenerateNewRefreshToken( req, res, userId, token ) {
     try {
+
+      // Generate a new Refresh Token record
       const newRefreshTokenRecord           = new RefreshTokenModel({
         userId                              : userId,
         ipAddress                           : UserHelper.GetIpAddress( req, res ),
@@ -229,10 +263,13 @@ class TokenHelper {
         token                               : token,
       })
 
+      // Save the Refresh Token record
       await newRefreshTokenRecord.save()
 
+      // Create the Refresh Token cookie
       CookieHelper.SetRefreshTokenIdCookie( res, newRefreshTokenRecord._id )
 
+      // Return the Refresh Token record
       return newRefreshTokenRecord
 
     } catch ( error ) {
@@ -251,16 +288,21 @@ class TokenHelper {
    */
   static async GetRefreshTokenRecord( req, res, next, lean = false, isRevoked = false ) {
     try {
+
+      // Get the user id and refresh token id
       const userId                          = UserHelper.GetUserId( req, res )
       const refreshTokenId                  = this.GetRefreshTokenId( req, res )
 
+      // If the user id and refresh token id are not found, let the user know they are not authenticated
       if( !userId && !refreshTokenId )
         throw new CustomErrorHelper( req.t( 'user.notAuthenticated' ) )
 
+      // Attempt to find the refresh token record
       const refreshTokenRecord              = !lean
         ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked })
         : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean()
 
+      // Return the refresh token record
       return refreshTokenRecord
 
     } catch ( error ) {
