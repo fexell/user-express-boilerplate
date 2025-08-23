@@ -3,13 +3,16 @@ import argon2 from 'argon2'
 /**
  * @class PasswordHelper
  * @classdesc Contains all methods related to password
+ * 
+ * @method PasswordHelper.Hash - Hashes the password
+ * @method PasswordHelper.Verify - Verifies the password
  */
 class PasswordHelper {
 
   /**
    * @method PasswordHelper.Hash
    * @description Hashes the password
-   * @param {*} password - The password to hash
+   * @param {String} password - The password to hash
    * @returns 
    */
   static async Hash( password ) {
@@ -23,8 +26,8 @@ class PasswordHelper {
   /**
    * @method PasswordHelper.Verify
    * @description Verifies the password
-   * @param {*} hash - The hashed password
-   * @param {*} password - The password (unhashed) to verify
+   * @param {String} hash - The hashed password
+   * @param {String} password - The password (unhashed) to verify
    * @returns 
    */
   static async Verify( hash, password ) {
