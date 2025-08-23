@@ -9,10 +9,10 @@ import AuthMiddleware from '../../../middlewares/Auth.middleware.js'
  * @constant AuthRouter
  * @description Contains all routes related to authentication
  * 
- * @route POST /api/auth/login
- * @route POST /api/auth/logout
- * @route PUT /api/auth/verify/email/:token
- * @route GET /api/auth/find/units
+ * @route {POST} /api/auth/login
+ * @route {POST} /api/auth/logout
+ * @route {PUT} /api/auth/verify/email/:token
+ * @route {GET} /api/auth/find/units
  * 
  * @exports AuthRouter
  */
@@ -58,6 +58,13 @@ AuthRouter.get( '/find/units', [
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
 ], AuthController.UnitsLoggedInOn )
+
+AuthRouter.put( '/unit/revoke/:tokenId', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.RefreshTokenRevoked,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountInactive,
+], AuthController.RevokeRefreshToken )
 
 export {
   AuthRouter as default,

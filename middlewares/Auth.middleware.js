@@ -14,13 +14,22 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @class AuthMiddleware
  * @classdesc Contains all methods related to authentication and authorization
  * 
- * @method AuthMiddleware.Authenticate - Authentication middleware, checking whether the user has access to the route
- * @method AuthMiddleware.AlreadyLoggedIn - Authentication middleware, checking whether the user is already logged in
- * @method AuthMiddleware.AlreadyLoggedOut - Authentication middleware, checking whether the user is already logged out
- * @method AuthMiddleware.RoleChecker - Authorization middleware, checking whether the user has the required role to access the route
- * @method AuthMiddleware.EmailVerified - Authentication middleware, checking whether the user's email address is verified
- * @method AuthMiddleware.AccountInactive - Authentication middleware, checking whether the user's account is active
- * @method AuthMiddleware.RefreshTokenRevoked - Authentication middleware, checking whether the refresh token is revoked
+ * @method AuthMiddleware.Authenticate Authentication middleware, checking whether the user has access to the route
+ * @method AuthMiddleware.AlreadyLoggedIn Authentication middleware, checking whether the user is already logged in
+ * @method AuthMiddleware.AlreadyLoggedOut Authentication middleware, checking whether the user is already logged out
+ * @method AuthMiddleware.RoleChecker Authorization middleware, checking whether the user has the required role to access the route
+ * @method AuthMiddleware.EmailVerified Authentication middleware, checking whether the user's email address is verified
+ * @method AuthMiddleware.AccountInactive Authentication middleware, checking whether the user's account is active
+ * @method AuthMiddleware.RefreshTokenRevoked Authentication middleware, checking whether the refresh token is revoked
+ * 
+ * @exports AuthMiddleware
+ * 
+ * Middlewares should be run in following order:
+ * 1. Authenticate
+ * 2. RefreshTokenRevoked
+ * 3. EmailVerified
+ * 4. AccountInactive
+ * 5. RoleChecker
  */
 class AuthMiddleware {
 
@@ -281,7 +290,7 @@ class AuthMiddleware {
 
       // If the refresh token is revoked
       if( refreshTokenRecord && refreshTokenRecord.isRevoked )
-        throw new CustomErrorHelper( req.t('token.revoked') )
+        return AuthController.Logout( req, res, next, 'user.logout.revoked' )
 
       // Continue to the next middleware or route
       return next()

@@ -137,6 +137,9 @@ class AuthController {
       CookieHelper.ClearCookie( res, CookieNames.ACCESS_TOKEN, true )
       CookieHelper.ClearCookie( res, CookieNames.REFRESH_TOKEN, true )
 
+      if( typeof forced === 'string' )
+        return ResponseHelper.Success( res, req.t( forced ) )
+
       // If the logout wasn't forced, return the success response, otherwise return the forced logout response
       return !forced
         ? ResponseHelper.Success( res, req.t('user.logout.success'))
@@ -224,6 +227,33 @@ class AuthController {
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('user.units.found'), 200, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async RevokeRefreshToken( req, res, next ) {
+    try {
+      const refreshTokenId                  = req.params.tokenId
+
+      // If the refresh token id was not found
+      if( !refreshTokenId )
+        throw new CustomErrorHelper( req.t('refreshToken.id.notFound') )
+
+      // Attempt to find the refresh token record
+      const refreshTokenRecord              = await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: UserHelper.GetUserId( req, res ), isRevoked: false })
+    
+      // If the refresh token record was not found
+      if( !refreshTokenRecord )
+        throw new CustomErrorHelper( req.t('refreshTokenRecord.notFound') )
+
+      // Revoke the refresh token
+      refreshTokenRecord.isRevoked          = true
+      await refreshTokenRecord.save()
+
+      // Return the success response
+      return ResponseHelper.Success( res, req.t('refreshTokenRecord.revoked') )
 
     } catch ( error ) {
       return next( error )

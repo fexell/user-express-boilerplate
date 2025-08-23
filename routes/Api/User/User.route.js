@@ -9,12 +9,12 @@ import AuthMiddleware from '../../../middlewares/Auth.middleware.js'
  * @constant UserRouter
  * @description Contains all routes related to users
  * 
- * @route GET /api/user/find/me
- * @route GET /api/user/find/all
- * @route GET /api/user/find/id/:id
- * @route GET /api/user/find/email/:email
- * @route GET /api/user/find/username/:username
- * @route POST /api/user/create
+ * @route {GET} /api/user/find/me
+ * @route {GET} /api/user/find/all
+ * @route {GET} /api/user/find/id/:id
+ * @route {GET} /api/user/find/email/:email
+ * @route {GET} /api/user/find/username/:username
+ * @route {POST} /api/user/create
  * 
  * @exports UserRouter
  */

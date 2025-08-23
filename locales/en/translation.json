@@ -18,6 +18,7 @@
 
   "user.logout.success": "You are now logged out.",
   "user.logout.forced": "You have been logged out.",
+  "user.logout.revoked": "You have been logged out, since your refresh token has been revoked.",
   
   "email.required": "Email is required.",
   "email.taken": "Email is already in use.",
@@ -53,6 +54,8 @@
 
   "refreshTokenId.invalid": "Refresh token ID is invalid.",
   "refreshTokenId.notFound": "Refresh token ID not found.",
+  "refreshTokenRecord.notFound": "Refresh token record not found.",
+  "refreshTokenRecord.revoked": "Refresh token has been revoked.",
 
   "route.protected": "This route is protected, and you are not authorized to access it."
 }

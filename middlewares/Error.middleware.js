@@ -9,13 +9,28 @@ import { NODE_ENV } from '../configs/Environment.config.js'
  * @description The global error middleware. Used in app.js -> App.use( ErrorMiddleware.Handler )
  */
 class ErrorMiddleware {
-  static Handler( error, req, res, next ) {
-    if( error instanceof mongoose.Error.ValidationError )
-      return ResponseHelper.Error( res, Object.values( error.errors )[ 0 ].message, 400 )
 
+  /**
+   * @method ErrorMiddleware.Handler
+   * @description The global error middleware handler
+   * 
+   * @param {Object} error 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns {Object}
+   */
+  static Handler( error, req, res, next ) {
+
+    // If the error is a mongoose validation error
+    if( error instanceof mongoose.Error.ValidationError )
+      return ResponseHelper.Error( res, Object.values( error.errors )[ 0 ].message, 400 ) // Handle one error at a time
+
+    // If in development mode, console log the error
     if( NODE_ENV === 'development' )
       console.error( error )
 
+    // Return the error
     return ResponseHelper.Error( res, error.message, error.status )
   }
 }
