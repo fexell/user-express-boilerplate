@@ -100,10 +100,10 @@ class AuthMiddleware {
         const newAccessToken                = TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
 
         // Save the JWT ID in both req and req.session
-        req.jwtId                           = req.session.jwtId                                      = jwtId
-        req.userId                          = req.session.userId                                     = userId 
-        req.accessToken                     = req.session.accessToken                                = newAccessToken
-        req.refreshTokenId                  = req.session.refreshTokenId                             = newRefreshTokenRecord._id
+        req.jwtId                           = req.session.jwtId                          = jwtId
+        req.userId                          = req.session.userId                         = userId 
+        req.accessToken                     = req.session.accessToken                    = newAccessToken
+        req.refreshTokenId                  = req.session.refreshTokenId                 = newRefreshTokenRecord._id
 
         // Continue to the next middleware or route
         return next()
