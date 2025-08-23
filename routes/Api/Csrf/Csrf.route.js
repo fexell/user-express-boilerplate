@@ -10,7 +10,7 @@ CsrfRouter.get('/', async ( req, res, next ) => {
   try {
     return ResponseHelper.Success( res, 'CSRF token generated', CsrfProtectionMiddleware.generateToken( req ), 'token' )
   } catch ( error ) {
-    next( error )
+    return next( error )
   }
 })
 
