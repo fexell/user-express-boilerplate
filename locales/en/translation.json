@@ -10,6 +10,7 @@
   "user.id.notFound": "User ID not found.",
 
   "user.found": "User found.",
+  "user.data.found": "User data found.",
   "user.units.found": "Units found.",
   
   "user.login.success": "You are now logged in.",

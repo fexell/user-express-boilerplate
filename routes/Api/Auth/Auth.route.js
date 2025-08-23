@@ -19,8 +19,7 @@ AuthRouter.post( '/logout', [
   AuthMiddleware.AlreadyLoggedOut,
 ], AuthController.Logout )
 
-AuthRouter.put( '/email/verify/:token', [
-  AuthMiddleware.AlreadyLoggedIn,
+AuthRouter.put( '/verify/email/:token', [
   AuthMiddleware.AccountInactive,
 ], AuthController.VerifyEmail )
 

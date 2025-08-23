@@ -180,15 +180,15 @@ class AuthMiddleware {
       try {
 
         // Get the user's record (in the database)
-        const user                          = await UserHelper.GetUserById( UserHelper.GetUserId( req, res ), true )
+        const user                          = await UserHelper.GetUserById( res, UserHelper.GetUserId( req, res ), true )
 
         // If roles is a string, and the user is not the required role
         if( typeof roles === 'string' && roles !== user.role )
-          throw new CustomErrorHelper( req.t('user.notAuthorized') )
+          throw new CustomErrorHelper( req.t('user.unauthorized') )
 
         // Else if roles is an array, and the user's role is not in the required roles
         else if( Array.isArray( roles ) && !roles.includes( user.role ) )
-          throw new CustomErrorHelper( req.t('user.notAuthorized') )
+          throw new CustomErrorHelper( req.t('user.unauthorized') )
 
         // Continue to the next middleware or route
         return next()
