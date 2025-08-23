@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import multer from 'multer'
 
+import Logger from '../../configs/Logger.config.js'
+
 import CsrfRouter from './Csrf/Csrf.route.js'
 import UserRouter from './User/User.route.js'
 import AuthRouter from './Auth/Auth.route.js'

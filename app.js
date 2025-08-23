@@ -1,6 +1,7 @@
 import express from 'express'
 import useragent from 'express-useragent'
 import fs from 'fs'
+import pinoHttp from 'pino-http'
 
 import CorsMiddleware from './configs/Cors.config.js'
 import {
@@ -8,7 +9,9 @@ import {
   PORT,
 } from './configs/Environment.config.js'
 import i18nMiddleware from './configs/i18n.config.js'
+import Logger from './configs/Logger.config.js'
 import ConnectToMongoDB from './configs/Mongoose.config.js'
+import MorganMiddleware from './configs/Morgan.config.js'
 import SecurityMiddlewares, {
   CookieParserMiddleware,
   CsrfProtectionMiddleware,
@@ -35,6 +38,7 @@ App.use( LimiterMiddleware )
 App.use( SlowDownLimiterMiddleware )
 App.use( SessionMiddleware )
 App.use( useragent.express() )
+App.use( MorganMiddleware )
 
 import ApiRouter from './routes/Api/Api.route.js'
 

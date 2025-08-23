@@ -85,7 +85,7 @@ class AuthController {
       req.refreshTokenId                    = req.session.refreshTokenId                 = newRefreshTokenRecord._id
 
       // Return the success response
-      return ResponseHelper.Success( res, req.t('user.login.success'), UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.login.success'), 200, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -223,7 +223,7 @@ class AuthController {
       const units                           = await RefreshTokenModel.find( { userId: userId, isRevoked: false } ).sort( sort ).lean()
 
       // Return the success response
-      return ResponseHelper.Success( res, req.t('user.units.found'), units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
+      return ResponseHelper.Success( res, req.t('user.units.found'), 200, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
 
     } catch ( error ) {
       return next( error )

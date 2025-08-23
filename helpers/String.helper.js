@@ -15,6 +15,8 @@ class StringHelper {
    * @returns {String}
    */
   static Capitalize( string ) {
+
+    // Turn the first letter of the string to uppercase, slice/remove the first letter and lowercase the rest
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
   }
 }

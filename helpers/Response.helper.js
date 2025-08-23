@@ -18,10 +18,12 @@ class ResponseHelper {
    * @param {*} key - The key name for the data
    * @returns 
    */
-  static Success( res, message, data, key = 'data' ) {
+  static Success( res, message, status = 200, data, key = 'data' ) {
     try {
+
+      // Returns a success response, with a message, status, and/or data
       return res
-        .status( 200 )
+        .status( status )
         .json({
           ...(message && { message }),
           ...(data && { [ key ]: data }),
@@ -42,6 +44,8 @@ class ResponseHelper {
    */
   static Error( res, message, status = 400 ) {
     try {
+
+      // Returns an error response, with a message and status
       return res
         .status(status)
         .json({ message })

@@ -111,6 +111,17 @@ class UserHelper {
       return ResponseHelper.Error( res, error.message )
     }
   }
+
+  static async GetUserByUsername( res, username, lean = false ) {
+    try {
+      return !lean
+        ? await UserModel.findOne( { username } )
+        : await UserModel.findOne( { username } ).lean()
+        
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
 }
 
 export {

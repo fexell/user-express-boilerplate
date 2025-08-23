@@ -9,7 +9,7 @@
   "user.id.invalid": "User ID is invalid.",
   "user.id.notFound": "User ID not found.",
 
-  "user.found": "Your user details were found.",
+  "user.found": "User found.",
   "user.units.found": "Units found.",
   
   "user.login.success": "You are now logged in.",
