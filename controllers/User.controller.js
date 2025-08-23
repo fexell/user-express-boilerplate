@@ -12,6 +12,9 @@ import UserHelper from '../helpers/User.helper.js'
  * 
  * @method UserController.Create - Create a new user
  * @method UserController.GetUser - Get the user's details
+ * @method UserController.GetUserById - Get the user's details by id
+ * @method UserController.GetUserByEmail - Get the user's details by email
+ * @method UserController.GetUserByUsername - Get the user's details by username
  */
 class UserController {
 
@@ -86,19 +89,32 @@ class UserController {
     }
   }
 
+  /**
+   * @method UserController.GetUserById
+   * @description The controller method handling getting a user's details by their id
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
   static async GetUserById( req, res, next ) {
     try {
 
+      // Retrieve the target user id
       const userId                          = req.params.id
 
+      // If the target user id is not found
       if( !userId )
         throw new CustomErrorHelper( req.t('user.id.notFound') )
 
+      // Get/find the user in the database by their id
       const user                            = await UserHelper.GetUserById( userId, true )
 
+      // If the user doesn't exist
       if( !user )
         throw new CustomErrorHelper( req.t('user.notFound') )
 
+      // Return the user
       return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
@@ -106,19 +122,32 @@ class UserController {
     }
   }
 
+  /**
+   * @method UserController.GetUserByEmail
+   * @description The controller method handling getting a user's details by their email
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
   static async GetUserByEmail( req, res, next ) {
     try {
 
+      // Retrieve the target user email
       const email                           = req.params.email
 
+      // If there is no email parameter
       if( !email )
         throw new CustomErrorHelper( req.t('email.notFound') )
 
+      // Get/find the user in the database by their email
       const user                            = await UserHelper.GetUserByEmail( res, email )
 
+      // If the user doesn't exist
       if( !user )
         throw new CustomErrorHelper( req.t('user.notFound') )
 
+      // Return the user
       return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
@@ -126,19 +155,32 @@ class UserController {
     }
   }
 
+  /**
+   * @method UserController.GetUserByUsername
+   * @description The controller method handling getting a user's details by their username
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
   static async GetUserByUsername( req, res, next ) {
     try {
 
+      // Retrieve the target user's username
       const username                        = req.params.username
 
+      // If the username from parameter is not found
       if( !username )
         throw new CustomErrorHelper( req.t('username.notFound') )
 
+      // Get/find the user in the database by their username
       const user                            = await UserHelper.GetUserByUsername( res, username )
 
+      // If the user doesn't exist
       if( !user )
         throw new CustomErrorHelper( req.t('user.notFound') )
 
+      // Return the user
       return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
