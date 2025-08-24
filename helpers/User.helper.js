@@ -18,7 +18,8 @@ import ResponseHelper from './Response.helper.js'
 class UserHelper {
 
   /**
-   * @method UserHelper.GetUserId - Get the user's id from req, session or cookie
+   * @method UserHelper.GetUserId
+   * @description Get the user's id from req, session or cookie
    * @param {*} req 
    * @param {*} res 
    * @returns {Mongoose.ObjectId}
@@ -34,6 +35,13 @@ class UserHelper {
     }
   }
 
+  /**
+   * @method UserHelper.GetUserEmail
+   * @description Get the user's email
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns 
+   */
   static async GetUserEmail( req, res ) {
     try {
 
@@ -48,6 +56,13 @@ class UserHelper {
     }
   }
 
+  /**
+   * @method UserHelper.GetUserUsername
+   * @description Get the user's username
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns 
+   */
   static async GetUserUsername( req, res ) {
     try {
 
@@ -63,9 +78,10 @@ class UserHelper {
   }
 
   /**
-   * @method UserHelper.GetIpAddress - Get the user's ip address
-   * @param {*} req 
-   * @param {*} res 
+   * @method UserHelper.GetIpAddress
+   * @description Get the user's ip address
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns {String}
    */
   static GetIpAddress( req, res ) {
@@ -80,9 +96,10 @@ class UserHelper {
   }
 
   /**
-   * @method UserHelper.GetUserAgent - Get the user's user agent (browser information)
-   * @param {*} req 
-   * @param {*} res 
+   * @method UserHelper.GetUserAgent
+   * @description Get the user's user agent / browser information
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns {String}
    */
   static GetUserAgent( req, res ) {
@@ -96,6 +113,13 @@ class UserHelper {
     }
   }
 
+  /**
+   * @method UserHelper.GetDeviceId
+   * @description Get the user's device id
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns 
+   */
   static GetDeviceId( req, res ) {
     try {
 
@@ -108,7 +132,8 @@ class UserHelper {
   }
 
   /**
-   * @method UserHelper.GetUserById - Get/retrieve the user's record from MongoDB by id
+   * @method UserHelper.GetUserById
+   * @description Get/retrieve the user's record from MongoDB by id
    * @param {mongoose.ObjectId} userId - The user's id
    * @param {Boolean} lean - Whether to lean (return plain javascript object) or not
    * @param {Boolean} withPassword - Whether to return the password or not
@@ -132,10 +157,11 @@ class UserHelper {
   }
 
   /**
-   * @method UserHelper.GetUserByEmail - Get/retrieve the user's record from MongoDB by email
-   * @param {*} email - The email address to retrieve a user by
-   * @param {*} lean - Whether to lean (return plain javascript object) or not
-   * @param {*} withPassword - Whether to return the password or not
+   * @method UserHelper.GetUserByEmail
+   * @description Get/retrieve the user's record from MongoDB by email
+   * @param {String} email - The email address to retrieve a user by
+   * @param {Boolean} lean - Whether to lean (return plain javascript object) or not
+   * @param {Boolean} withPassword - Whether to return the password or not
    * @returns {Mongoose.Document}
    */
   static async GetUserByEmail( req, res, email, lean = false, withPassword = false ) {
@@ -156,7 +182,8 @@ class UserHelper {
   }
 
   /**
-   * 
+   * @method UserHelper.GetUserByUsername
+   * @description Get/retrieve the user's record from MongoDB by username
    * @param {Response} res 
    * @param {String} username 
    * @param {Boolean} lean 

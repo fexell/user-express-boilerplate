@@ -77,6 +77,13 @@ class AuthMiddleware {
         if( !refreshTokenRecord )
           return AuthController.Logout( req, res, next, true )
 
+        // If the device id from the refresh token record does not match the device id, logout the user
+        else if( refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res ) ) {
+          await RefreshTokenModel.updateOne( { _id: refreshTokenRecord._id }, { $set: { isRevoked: true } } )
+
+          return AuthController.Logout( req, res, next, true )
+        }
+        
         const decodedRefreshToken           = TokenHelper.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
 
         // If the refresh token is not valid, logout the user
@@ -93,6 +100,7 @@ class AuthMiddleware {
         // Save the old refresh token
         await refreshTokenRecord.save()
 
+        // Get all the refresh tokens for the user, based on the user id, device id, and ip address
         const refreshTokenRecords           = await RefreshTokenModel.find({
           userId                            : userId,
           deviceId                          : UserHelper.GetDeviceId( req, res ),
@@ -100,17 +108,19 @@ class AuthMiddleware {
           isRevoked                         : false,
         }).lean()
 
+        // If the user has more than one refresh token for 1 device, revoke all the refresh tokens
         if(refreshTokenRecords.length > 1)
           await RefreshTokenModel.updateMany(
             {
-              userId                          : userId,
-              ipAddress                       : UserHelper.GetIpAddress( req, res ),
-              userAgent                       : UserHelper.GetUserAgent( req, res ),
-              isRevoked                       : false,
+              userId                        : userId,
+              deviceId                      : UserHelper.GetDeviceId( req, res ),
+              ipAddress                     : UserHelper.GetIpAddress( req, res ),
+              userAgent                     : UserHelper.GetUserAgent( req, res ),
+              isRevoked                     : false,
             },
             {
-              $set                            : {
-                isRevoked                     : true,
+              $set                          : {
+                isRevoked                   : true,
               },
             },
           )

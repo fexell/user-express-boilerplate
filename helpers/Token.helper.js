@@ -300,8 +300,8 @@ class TokenHelper {
 
       // Attempt to find the refresh token record
       const refreshTokenRecord              = !lean
-        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked })
-        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, isRevoked: isRevoked }).lean()
+        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked })
+        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked }).lean()
 
       // Return the refresh token record
       return refreshTokenRecord
