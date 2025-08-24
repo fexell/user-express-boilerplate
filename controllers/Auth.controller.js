@@ -47,7 +47,7 @@ class AuthController {
         throw new CustomErrorHelper( req.t('password.required') )
 
       // Get the user record by email
-      const user                            = await UserHelper.GetUserByEmail( res, email, true, true )
+      const user                            = await UserHelper.GetUserByEmail( req, res, email, true, true )
 
       // If the user was not found
       if(!user)
@@ -79,7 +79,6 @@ class AuthController {
 
       // Set everything in the session
       req.jwtId                             = req.session.jwtId                          = jwtId
-      req.user                              = req.session.user                           = user
       req.userId                            = req.session.userId                         = user._id
       req.accessToken                       = req.session.accessToken                    = accessToken
       req.refreshTokenId                    = req.session.refreshTokenId                 = newRefreshTokenRecord._id
@@ -180,7 +179,7 @@ class AuthController {
         throw new CustomErrorHelper( req.t('email.query.notFound') )
 
       // Attempt to find the user by their email
-      const user                            = await UserHelper.GetUserByEmail( res, email )
+      const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user was not found
       if( !user )

@@ -1,8 +1,13 @@
 import mongoose, { Schema } from 'mongoose'
+import { v4 as uuidv4 } from 'uuid'
 
 const RefreshTokenSchema                    = new Schema({
   userId                                    : {
     type                                    : Schema.Types.ObjectId,
+    required                                : true,
+  },
+  deviceId                                  : {
+    type                                    : String,
     required                                : true,
   },
   token                                     : {
@@ -20,7 +25,12 @@ const RefreshTokenSchema                    = new Schema({
   isRevoked                                 : {
     type                                    : Boolean,
     default                                 : false,
-  }
+  },
+  expireAt                                  : {
+    type                                    : Date,
+    default                                 : Date.now,
+    index                                   : { expires: 1000 * 60 * 60 * 24 * 30 },
+  },
 }, {
   timestamps                                : true,
 })

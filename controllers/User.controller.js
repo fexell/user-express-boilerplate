@@ -10,12 +10,12 @@ import UserHelper from '../helpers/User.helper.js'
  * @class UserController
  * @classdesc Contains all controller methods related to the user
  * 
- * @method UserController.Create - Create a new user
- * @method UserController.GetUser - Get the user's details
- * @method UserController.GetUserById - Get the user's details by id
- * @method UserController.GetUserByEmail - Get the user's details by email
- * @method UserController.GetUserByUsername - Get the user's details by username
- * @method UserController.GetAllUsers - Get/return all users
+ * @method UserController.Create Create a new user
+ * @method UserController.GetUser Get the user's details
+ * @method UserController.GetUserById Get the user's details by id
+ * @method UserController.GetUserByEmail Get the user's details by email
+ * @method UserController.GetUserByUsername Get the user's details by username
+ * @method UserController.GetAllUsers Get/return all users
  */
 class UserController {
 
@@ -76,7 +76,7 @@ class UserController {
     try {
 
       // Retrieve the user by user id
-      const user                            = await UserHelper.GetUserById( res, UserHelper.GetUserId( req, res ), true )
+      const user                            = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ), true )
 
       // If the user doesn't exist
       if( !user )
@@ -109,7 +109,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('user.id.notFound') )
 
       // Get/find the user in the database by their id
-      const user                            = await UserHelper.GetUserById( res, userId, true )
+      const user                            = await UserHelper.GetUserById( req, res, userId, true )
 
       // If the user doesn't exist
       if( !user )
@@ -142,7 +142,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('email.notFound') )
 
       // Get/find the user in the database by their email
-      const user                            = await UserHelper.GetUserByEmail( res, email )
+      const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user doesn't exist
       if( !user )
@@ -175,7 +175,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('username.notFound') )
 
       // Get/find the user in the database by their username
-      const user                            = await UserHelper.GetUserByUsername( res, username )
+      const user                            = await UserHelper.GetUserByUsername( req, res, username )
 
       // If the user doesn't exist
       if( !user )

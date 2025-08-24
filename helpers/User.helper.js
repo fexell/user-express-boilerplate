@@ -9,11 +9,11 @@ import ResponseHelper from './Response.helper.js'
  * @class UserHelper
  * @classdesc Contains all methods related to the user or users
  * 
- * @method UserHelper.GetUserId - Get the user's id from req, session or cookie
- * @method UserHelper.GetIpAddress - Get the user's ip address
- * @method UserHelper.GetUserAgent - Get the user's user agent (browser information)
- * @method UserHelper.GetUserById - Get the user's record from MongoDB by id
- * @method UserHelper.GetUserByEmail - Get the user's record from MongoDB by email
+ * @method UserHelper.GetUserId Get the user's id from req, session or cookie
+ * @method UserHelper.GetIpAddress Get the user's ip address
+ * @method UserHelper.GetUserAgent Get the user's user agent (browser information)
+ * @method UserHelper.GetUserById Get the user's record from MongoDB by id
+ * @method UserHelper.GetUserByEmail Get the user's record from MongoDB by email
  */
 class UserHelper {
 
@@ -34,22 +34,28 @@ class UserHelper {
     }
   }
 
-  static GetUserEmail( req, res ) {
+  static async GetUserEmail( req, res ) {
     try {
 
-      // Get the user email from either req.user, req.session.user, parameters, form body, or query
-      return req.user?.email || req.session.user?.email || req.params?.email || req.body?.email || req.query?.email
+      // Get the user's record
+      const user                            = await this.GetUserById( req, res, this.GetUserId( req, res ) )
+
+      // Return the user's email
+      return user?.email
 
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
   }
 
-  static GetUserUsername( req, res ) {
+  static async GetUserUsername( req, res ) {
     try {
 
-      // Get the user username from either req.user, req.session.user, parameters, form body, or query
-      return req.user?.username || req.session.user?.username || req.params?.username || req.body?.username || req.query?.username
+      // Get the user's record by id
+      const user                            = await this.GetUserById( req, res, this.GetUserId( req, res ) )
+
+      // Return the user's username
+      return user?.username
 
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
@@ -90,6 +96,17 @@ class UserHelper {
     }
   }
 
+  static GetDeviceId( req, res ) {
+    try {
+
+      // Get the fingerprint
+      return req.fingerprint.hash
+
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
   /**
    * @method UserHelper.GetUserById - Get/retrieve the user's record from MongoDB by id
    * @param {mongoose.ObjectId} userId - The user's id
@@ -97,7 +114,7 @@ class UserHelper {
    * @param {Boolean} withPassword - Whether to return the password or not
    * @returns {Mongoose.Document}
    */
-  static async GetUserById( res, userId, lean = false, withPassword = false ) {
+  static async GetUserById( req, res, userId, lean = false, withPassword = false ) {
     try {
 
       // Attempt to find the user by id
@@ -121,17 +138,17 @@ class UserHelper {
    * @param {*} withPassword - Whether to return the password or not
    * @returns {Mongoose.Document}
    */
-  static async GetUserByEmail( res, email, lean = false, withPassword = false ) {
+  static async GetUserByEmail( req, res, email, lean = false, withPassword = false ) {
     try {
 
       // Attempt to find the user by email
       return !lean
         ? !withPassword
-          ? await UserModel.findOne( { email: email || this.GetUserEmail( req, res ) } )
-          : await UserModel.findOne( { email: email || this.GetUserEmail( req, res ) } ).select( '+password' )
+          ? await UserModel.findOne( { email: email || await this.GetUserEmail( req, res ) } )
+          : await UserModel.findOne( { email: email || await this.GetUserEmail( req, res ) } ).select( '+password' )
         : !withPassword
-          ? await UserModel.findOne( { email: email || this.GetUserEmail( req, res ) } ).lean()
-          : await UserModel.findOne( { email: email || this.GetUserEmail( req, res ) } ).select( '+password' ).lean()
+          ? await UserModel.findOne( { email: email || await this.GetUserEmail( req, res ) } ).lean()
+          : await UserModel.findOne( { email: email || await this.GetUserEmail( req, res ) } ).select( '+password' ).lean()
 
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
@@ -145,13 +162,13 @@ class UserHelper {
    * @param {Boolean} lean 
    * @returns {Mongoose.Document}
    */
-  static async GetUserByUsername( res, username, lean = false ) {
+  static async GetUserByUsername( req, res, username, lean = false ) {
     try {
 
       // Attempt to find the user by username
       return !lean
-        ? await UserModel.findOne( { username: username || this.GetUserUsername( req, res ) } )
-        : await UserModel.findOne( { username: username || this.GetUserUsername( req, res ) } ).lean()
+        ? await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } )
+        : await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } ).lean()
 
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import AuthController from '../controllers/Auth.controller.js'
 
 import RefreshTokenModel from '../models/RefreshToken.model.js'
+import UserModel from '../models/User.model.js'
 
 import CookieHelper from '../helpers/Cookie.helper.js'
 import CustomErrorHelper from '../helpers/Error.helper.js'
@@ -92,6 +93,28 @@ class AuthMiddleware {
         // Save the old refresh token
         await refreshTokenRecord.save()
 
+        const refreshTokenRecords           = await RefreshTokenModel.find({
+          userId                            : userId,
+          deviceId                          : UserHelper.GetDeviceId( req, res ),
+          ipAddress                         : UserHelper.GetIpAddress( req, res ),
+          isRevoked                         : false,
+        }).lean()
+
+        if(refreshTokenRecords.length > 1)
+          await RefreshTokenModel.updateMany(
+            {
+              userId                          : userId,
+              ipAddress                       : UserHelper.GetIpAddress( req, res ),
+              userAgent                       : UserHelper.GetUserAgent( req, res ),
+              isRevoked                       : false,
+            },
+            {
+              $set                            : {
+                isRevoked                     : true,
+              },
+            },
+          )
+
         // Sign a new refresh token
         const newRefreshToken               = TokenHelper.SignRefreshToken( userId )
 
@@ -111,7 +134,7 @@ class AuthMiddleware {
 
         // Save the JWT ID in both req and req.session
         req.jwtId                           = req.session.jwtId                          = jwtId
-        req.userId                          = req.session.userId                         = userId 
+        req.userId                          = req.session.userId                         = userId
         req.accessToken                     = req.session.accessToken                    = newAccessToken
         req.refreshTokenId                  = req.session.refreshTokenId                 = newRefreshTokenRecord._id
 
@@ -234,7 +257,7 @@ class AuthMiddleware {
       try {
 
         // Get the user's record (in the database)
-        const user                          = await UserHelper.GetUserById( res, UserHelper.GetUserId( req, res ), true )
+        const user                          = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ), true )
 
         // If roles is a string, and the user is not the required role
         if( typeof roles === 'string' && roles !== user.role )
@@ -265,14 +288,14 @@ class AuthMiddleware {
     try {
 
       // Get the user's email
-      const email                           = UserHelper.GetUserEmail( req, res )
+      const email                           = await UserHelper.GetUserEmail( req, res ) || req.body?.email
 
       // If the email was not found
       if( !email )
         throw new CustomErrorHelper( req.t('email.notFound') )
 
       // Get the user's record, by their email
-      const user                            = await UserHelper.GetUserByEmail( res, email )
+      const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user's email is not verified
       if( !user.isEmailVerified )
@@ -298,14 +321,14 @@ class AuthMiddleware {
     try {
 
       // Get the user's email
-      const email                           = UserHelper.GetUserEmail( req, res )
+      const email                           = await UserHelper.GetUserEmail( req, res ) || req.body?.email
 
       // If the email was not found
       if( !email )
         throw new CustomErrorHelper( req.t('email.notFound') )
 
       // Get the user's record, by their email
-      const user                            = await UserHelper.GetUserByEmail( res, email )
+      const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user's account is not active
       if( !user.isActive )

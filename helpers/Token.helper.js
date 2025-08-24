@@ -258,6 +258,7 @@ class TokenHelper {
       // Generate a new Refresh Token record
       const newRefreshTokenRecord           = new RefreshTokenModel({
         userId                              : userId,
+        deviceId                            : UserHelper.GetDeviceId( req, res ),
         ipAddress                           : UserHelper.GetIpAddress( req, res ),
         userAgent                           : UserHelper.GetUserAgent( req, res ),
         token                               : token,

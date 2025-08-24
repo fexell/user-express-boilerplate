@@ -8,6 +8,7 @@ import {
   NODE_ENV,
   PORT,
 } from './configs/Environment.config.js'
+import FingerprintMiddleware from './configs/Fingerprint.config.js'
 import i18nMiddleware from './configs/i18n.config.js'
 import Logger from './configs/Logger.config.js'
 import ConnectToMongoDB from './configs/Mongoose.config.js'
@@ -43,6 +44,7 @@ App.use( SlowDownLimiterMiddleware )
 App.use( SessionMiddleware )
 App.use( useragent.express() )
 App.use( MorganMiddleware )
+App.use( FingerprintMiddleware )
 
 // Import routes
 import ApiRouter from './routes/Api/Api.route.js'
