@@ -12,6 +12,7 @@ import ResponseHelper from './Response.helper.js'
  * @method UserHelper.GetUserId Get the user's id from req, session or cookie
  * @method UserHelper.GetIpAddress Get the user's ip address
  * @method UserHelper.GetUserAgent Get the user's user agent (browser information)
+ * @method UserHelper.GetDeviceId Get the user's device id
  * @method UserHelper.GetUserById Get the user's record from MongoDB by id
  * @method UserHelper.GetUserByEmail Get the user's record from MongoDB by email
  */

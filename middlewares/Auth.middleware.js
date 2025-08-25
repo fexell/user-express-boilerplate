@@ -78,12 +78,18 @@ class AuthMiddleware {
           return AuthController.Logout( req, res, next, true )
 
         // If the device id from the refresh token record does not match the device id, logout the user
-        else if( refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res ) ) {
-          await RefreshTokenModel.updateOne( { _id: refreshTokenRecord._id }, { $set: { isRevoked: true } } )
+        else if( refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res ) ||
+          !UserHelper.GetDeviceId( req, res ) ||
+          UserHelper.GetDeviceId( req, res ).length !== 32 ) {
 
+          // Revoke the current refresh token
+          await TokenHelper.RevokeRefreshToken( req, res )
+
+          // Logout the user (force logout since the device id does not match the one in the refresh token record)
           return AuthController.Logout( req, res, next, true )
         }
         
+        // Try to decode the refresh token
         const decodedRefreshToken           = TokenHelper.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
 
         // If the refresh token is not valid, logout the user
@@ -100,30 +106,12 @@ class AuthMiddleware {
         // Save the old refresh token
         await refreshTokenRecord.save()
 
-        // Get all the refresh tokens for the user, based on the user id, device id, and ip address
-        const refreshTokenRecords           = await RefreshTokenModel.find({
-          userId                            : userId,
-          deviceId                          : UserHelper.GetDeviceId( req, res ),
-          ipAddress                         : UserHelper.GetIpAddress( req, res ),
-          isRevoked                         : false,
-        }).lean()
+        // Get all the refresh tokens for the user, based on the user id and device id
+        const refreshTokenRecords           = await TokenHelper.GetRefreshTokenRecords( req, res, next, true )
 
         // If the user has more than one refresh token for 1 device, revoke all the refresh tokens
         if(refreshTokenRecords.length > 1)
-          await RefreshTokenModel.updateMany(
-            {
-              userId                        : userId,
-              deviceId                      : UserHelper.GetDeviceId( req, res ),
-              ipAddress                     : UserHelper.GetIpAddress( req, res ),
-              userAgent                     : UserHelper.GetUserAgent( req, res ),
-              isRevoked                     : false,
-            },
-            {
-              $set                          : {
-                isRevoked                   : true,
-              },
-            },
-          )
+          await TokenHelper.RevokeRefreshToken( req, res, true )
 
         // Sign a new refresh token
         const newRefreshToken               = TokenHelper.SignRefreshToken( userId )

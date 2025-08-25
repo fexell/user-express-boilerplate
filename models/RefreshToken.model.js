@@ -26,11 +26,6 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : Boolean,
     default                                 : false,
   },
-  expireAt                                  : {
-    type                                    : Date,
-    default                                 : Date.now,
-    index                                   : { expires: 1000 * 60 * 60 * 24 * 30 },
-  },
 }, {
   timestamps                                : true,
 })

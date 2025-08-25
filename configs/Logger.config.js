@@ -1,15 +1,13 @@
-import pino from 'pino'
+import winston from 'winston'
+import ExpressWinston from 'express-winston'
+import Log from 'express-winston-middleware'
 
-const Logger                                = pino({
+const LoggerMiddleware                      = ExpressWinston.logger( {
   level                                     : 'info',
-  transport                                 : {
-    target                                  : 'pino-pretty',
-    options                                 : {
-      colorize                              : true
-    },
-  },
+  transports                                : [ new winston.transports.File( { filename: 'logs/app.log' }) ],
+  format                                    : winston.format.combine( winston.format.colorize(), winston.format.json() ),
 })
 
 export {
-  Logger as default
+  LoggerMiddleware as default,
 }

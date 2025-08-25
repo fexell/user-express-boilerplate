@@ -29,19 +29,21 @@ const ExpirationTime                        = {
  * @class TokenHelper
  * @classdesc Contains all methods related to (JWT) tokens
  * 
- * @method TokenHelper.Options - Token Options
- * @method TokenHelper.Sign - Sign JWT method
- * @method TokenHelper.SignAccessToken - Sign Access Token method
- * @method TokenHelper.SignRefreshToken - Sign Refresh Token method
- * @method TokenHelper.VerifyToken - Verify JWT method
- * @method TokenHelper.VerifyAccessToken - Verify Access Token method
- * @method TokenHelper.GetAccessToken - Get Access Token method
- * @method TokenHelper.GenerateNewAccessToken - Generate New Access Token method
- * @method TokenHelper.VerifyRefreshToken - Verify Refresh Token method
- * @method TokenHelper.GetRefreshTokenId - Get Refresh Token Id method
- * @method TokenHelper.GenerateNewRefreshToken - Generate New Refresh Token method
- * @method TokenHelper.GetRefreshTokenRecord - Get Refresh Token Record method
- * @method TokenHelper.ValidateAndDecodeToken - Validate And Decode Token method
+ * @method TokenHelper.Options Token Options
+ * @method TokenHelper.Sign Sign JWT method
+ * @method TokenHelper.SignAccessToken Sign Access Token method
+ * @method TokenHelper.SignRefreshToken Sign Refresh Token method
+ * @method TokenHelper.VerifyToken Verify JWT method
+ * @method TokenHelper.VerifyAccessToken Verify Access Token method
+ * @method TokenHelper.GetAccessToken Get Access Token method
+ * @method TokenHelper.GenerateNewAccessToken Generate New Access Token method
+ * @method TokenHelper.VerifyRefreshToken Verify Refresh Token method
+ * @method TokenHelper.GetRefreshTokenId Get Refresh Token Id method
+ * @method TokenHelper.GenerateNewRefreshToken Generate New Refresh Token method
+ * @method TokenHelper.GetRefreshTokenRecord Get Refresh Token Record method
+ * @method TokenHelper.GetRefreshTokenRecords Get all refresh token records
+ * @method TokenHelper.RevokeRefreshToken Revoke one or more refresh tokens
+ * @method TokenHelper.ValidateAndDecodeToken Validate And Decode Token method
  */
 class TokenHelper {
 
@@ -312,8 +314,72 @@ class TokenHelper {
   }
 
   /**
+   * @method TokenHelper.GetRefreshTokenRecords
+   * @description Get all refresh token records
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @param {Boolean} lean 
+   * @param {Boolean} isRevoked 
+   * @returns 
+   */
+  static async GetRefreshTokenRecords( req, res, next, lean = false, isRevoked = false ) {
+    try {
+
+      // Get the user id
+      const userId                          = UserHelper.GetUserId( req, res )
+
+      if( !userId )
+        throw new CustomErrorHelper( req.t( 'user.id.notFound' ) )
+
+      // Attempt to find the refresh token records
+      const refreshTokenRecords             = !lean
+        ? await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked })
+        : await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked }).lean()
+
+      // Return the refresh token records
+      return refreshTokenRecords
+
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
+  /**
+   * @method TokenHelper.RevokeRefreshToken
+   * @description Method for revoking one or more refresh tokens
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @param {Boolean} many 
+   * @returns 
+   */
+  static async RevokeRefreshToken( req, res, many = false ) {
+    try {
+
+      // Get the refresh token id
+      const refreshTokenId                  = this.GetRefreshTokenId( req, res )
+
+      // If the refresh token id is not found, let the user know they are not authenticated
+      if( !refreshTokenId )
+        throw new CustomErrorHelper( req.t( 'refreshToken.id.notFound' ) )
+
+      // Attempt to find the refresh token record
+      const refreshTokenRecords             = !many
+        ? await RefreshTokenModel.updateOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
+        : await RefreshTokenModel.updateMany({ _id: { $in: refreshTokenId }, deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
+
+      // Return the success response
+      return ResponseHelper.Success( res, req.t( 'refreshTokenRecord.revoked' ) )
+
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
+  /**
    * @method TokenHelper.ValidateAndDecodeToken - Validate And Decode Token method
-   * @param {*} req 
+   * @param {Request} req 
    * @param {String} token 
    * @param {String} type 
    * @returns 

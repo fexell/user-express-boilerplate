@@ -27,7 +27,7 @@ class AuthController {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns Success response
    */
   static async Login( req, res, next ) {
     try {
@@ -98,7 +98,7 @@ class AuthController {
    * @param {Response} res 
    * @param {NextFunction} next 
    * @param {Boolean} forced 
-   * @returns 
+   * @returns Success response
    */
   static async Logout( req, res, next, forced = false ) {
     try {
@@ -115,6 +115,7 @@ class AuthController {
       const refreshTokenRecord              = await RefreshTokenModel.findOne( {
         _id                                 : refreshTokenId,
         userId                              : userId,
+        deviceId                            : UserHelper.GetDeviceId( req, res ),
         isRevoked                           : false,
       } )
 
@@ -130,7 +131,6 @@ class AuthController {
 
       // Clear all the session variables
       delete req.session.jwtId
-      delete req.session.user
       delete req.session.userId
       delete req.session.accessToken
       delete req.session.refreshTokenId
