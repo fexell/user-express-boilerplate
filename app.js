@@ -10,7 +10,7 @@ import {
 } from './configs/Environment.config.js'
 import FingerprintMiddleware from './configs/Fingerprint.config.js'
 import i18nMiddleware from './configs/i18n.config.js'
-import LoggerMiddleware from './configs/Logger.config.js'
+import LoggerMiddleware, { HttpLoggerMiddleware } from './configs/Logger.config.js'
 import ConnectToMongoDB from './configs/Mongoose.config.js'
 import MorganMiddleware from './configs/Morgan.config.js'
 import SecurityMiddlewares, {
@@ -45,7 +45,7 @@ App.use( SessionMiddleware )
 App.use( useragent.express() )
 App.use( MorganMiddleware )
 App.use( FingerprintMiddleware )
-App.use( LoggerMiddleware )
+App.use( HttpLoggerMiddleware )
 
 // Import routes
 import ApiRouter from './routes/Api/Api.route.js'

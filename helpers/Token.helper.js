@@ -284,12 +284,11 @@ class TokenHelper {
    * @method TokenHelper.GetRefreshTokenRecord - Get Refresh Token Record method
    * @param {*} req 
    * @param {*} res 
-   * @param {*} next 
-   * @param {Boolean} lean 
+   * @param {Boolean} isLean 
    * @param {Boolean} isRevoked 
    * @returns 
    */
-  static async GetRefreshTokenRecord( req, res, next, lean = false, isRevoked = false ) {
+  static async GetRefreshTokenRecord( req, res, isLean = false, isRevoked = false ) {
     try {
 
       // Get the user id and refresh token id
@@ -301,7 +300,7 @@ class TokenHelper {
         throw new CustomErrorHelper( req.t( 'user.notAuthenticated' ) )
 
       // Attempt to find the refresh token record
-      const refreshTokenRecord              = !lean
+      const refreshTokenRecord              = !isLean
         ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked })
         : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked }).lean()
 
@@ -318,12 +317,11 @@ class TokenHelper {
    * @description Get all refresh token records
    * @param {Request} req 
    * @param {Response} res 
-   * @param {NextFunction} next 
-   * @param {Boolean} lean 
+   * @param {Boolean} isLean 
    * @param {Boolean} isRevoked 
    * @returns 
    */
-  static async GetRefreshTokenRecords( req, res, next, lean = false, isRevoked = false ) {
+  static async GetRefreshTokenRecords( req, res, isLean = false, isRevoked = false ) {
     try {
 
       // Get the user id
@@ -333,7 +331,7 @@ class TokenHelper {
         throw new CustomErrorHelper( req.t( 'user.id.notFound' ) )
 
       // Attempt to find the refresh token records
-      const refreshTokenRecords             = !lean
+      const refreshTokenRecords             = !isLean
         ? await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked })
         : await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked }).lean()
 
@@ -354,7 +352,7 @@ class TokenHelper {
    * @param {Boolean} many 
    * @returns 
    */
-  static async RevokeRefreshToken( req, res, many = false ) {
+  static async RevokeRefreshToken( req, res, isMany = false ) {
     try {
 
       // Get the refresh token id
@@ -365,9 +363,9 @@ class TokenHelper {
         throw new CustomErrorHelper( req.t( 'refreshToken.id.notFound' ) )
 
       // Attempt to find the refresh token record
-      const refreshTokenRecords             = !many
+      const refreshTokenRecords             = !isMany
         ? await RefreshTokenModel.updateOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
-        : await RefreshTokenModel.updateMany({ _id: { $in: refreshTokenId }, deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
+        : await RefreshTokenModel.updateMany({ userId: UserHelper.GetUserId( req, res ), deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
 
       // Return the success response
       return ResponseHelper.Success( res, req.t( 'refreshTokenRecord.revoked' ) )
@@ -378,7 +376,8 @@ class TokenHelper {
   }
 
   /**
-   * @method TokenHelper.ValidateAndDecodeToken - Validate And Decode Token method
+   * @method TokenHelper.ValidateAndDecodeToken
+   * @description Method for validating and decoding a token
    * @param {Request} req 
    * @param {String} token 
    * @param {String} type 

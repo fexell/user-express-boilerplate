@@ -1,8 +1,9 @@
 import mongoose from 'mongoose'
 
-import ResponseHelper from '../helpers/Response.helper.js'
-
 import { NODE_ENV } from '../configs/Environment.config.js'
+import LoggerMiddleware from '../configs/Logger.config.js'
+
+import ResponseHelper from '../helpers/Response.helper.js'
 
 /**
  * @class ErrorMiddleware
@@ -29,6 +30,9 @@ class ErrorMiddleware {
     // If in development mode, console log the error
     if( NODE_ENV === 'development' )
       console.error( error )
+
+    // Log the error
+    LoggerMiddleware.error( error )
 
     // Return the error
     return ResponseHelper.Error( res, error.message, error.status )

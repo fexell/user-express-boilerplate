@@ -27,10 +27,11 @@ import TokenHelper from '../helpers/Token.helper.js'
  * 
  * Middlewares should be run in following order:
  * 1. Authenticate
- * 2. RefreshTokenRevoked
- * 3. EmailVerified
- * 4. AccountInactive
- * 5. RoleChecker
+ * 2. DataCheck
+ * 3. RefreshTokenRevoked
+ * 4. EmailVerified
+ * 5 AccountInactive
+ * 6. RoleChecker
  */
 class AuthMiddleware {
 
@@ -71,16 +72,18 @@ class AuthMiddleware {
       } else {
 
         // Get the refresh token record, and then try to decode the refresh token
-        const refreshTokenRecord            = await TokenHelper.GetRefreshTokenRecord( req, res, next )
+        const refreshTokenRecord            = await TokenHelper.GetRefreshTokenRecord( req, res )
 
         // If the refresh token is not found, logout the user
         if( !refreshTokenRecord )
           return AuthController.Logout( req, res, next, true )
 
         // If the device id from the refresh token record does not match the device id, logout the user
-        else if( refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res ) ||
+        else if(
           !UserHelper.GetDeviceId( req, res ) ||
-          UserHelper.GetDeviceId( req, res ).length !== 32 ) {
+          UserHelper.GetDeviceId( req, res ).length !== 32 ||
+          refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res )
+        ) {
 
           // Revoke the current refresh token
           await TokenHelper.RevokeRefreshToken( req, res )
@@ -107,7 +110,7 @@ class AuthMiddleware {
         await refreshTokenRecord.save()
 
         // Get all the refresh tokens for the user, based on the user id and device id
-        const refreshTokenRecords           = await TokenHelper.GetRefreshTokenRecords( req, res, next, true )
+        const refreshTokenRecords           = await TokenHelper.GetRefreshTokenRecords( req, res, true )
 
         // If the user has more than one refresh token for 1 device, revoke all the refresh tokens
         if(refreshTokenRecords.length > 1)
@@ -352,7 +355,7 @@ class AuthMiddleware {
     try {
 
       // Get the refresh token record
-      const refreshTokenRecord              = await TokenHelper.GetRefreshTokenRecord( req, res, next, true, true )
+      const refreshTokenRecord              = await TokenHelper.GetRefreshTokenRecord( req, res, true, true )
 
       // If the refresh token is revoked
       if( refreshTokenRecord && refreshTokenRecord.isRevoked )

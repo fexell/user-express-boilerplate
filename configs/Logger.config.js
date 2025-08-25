@@ -1,13 +1,27 @@
-import winston from 'winston'
-import ExpressWinston from 'express-winston'
-import Log from 'express-winston-middleware'
+import pino from 'pino'
+import PinoHttp from 'pino-http'
 
-const LoggerMiddleware                      = ExpressWinston.logger( {
+const LoggerMiddleware                      = pino({
   level                                     : 'info',
-  transports                                : [ new winston.transports.File( { filename: 'logs/app.log' }) ],
-  format                                    : winston.format.combine( winston.format.colorize(), winston.format.json() ),
+  transport                                 : {
+    targets                                 : [
+      {
+        target                              : 'pino/file',
+        options                             : { destination: 'logs/app.log' },
+        level                               : 'info',
+      },
+      {
+        target                              : 'pino/file',
+        options                             : { destination: 'logs/error.log' },
+        level                               : 'error',
+      },
+    ],
+  },
 })
+
+const HttpLoggerMiddleware                  = PinoHttp({ logger: LoggerMiddleware })
 
 export {
   LoggerMiddleware as default,
+  HttpLoggerMiddleware,
 }

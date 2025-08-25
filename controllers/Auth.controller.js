@@ -253,15 +253,10 @@ class AuthController {
         throw new CustomErrorHelper( req.t('refreshToken.id.notFound') )
 
       // Attempt to find the refresh token record
-      const refreshTokenRecords             = await RefreshTokenModel.updateMany( {
+      const refreshTokenRecords             = await RefreshTokenModel.findOneAndUpdate( {
           _id                               : refreshTokenId,
-          deviceId                          : UserHelper.GetDeviceId( req, res )
-        },
-        {
-          $set                              : {
-            isRevoked                       : true
-          }
-        } )
+          userId                            : UserHelper.GetUserId( req, res ),
+        },{ $set: { isRevoked: true } } )
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('refreshTokenRecord.revoked') )
