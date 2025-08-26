@@ -161,8 +161,8 @@ class TokenHelper {
   /**
    * @method TokenHelper.GetAccessToken
    * @description Gets the Access Token, from either req, session or cookie
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns 
    */
   static GetAccessToken( req, res ) {
@@ -179,8 +179,8 @@ class TokenHelper {
   /**
    * @method TokenHelper.GenerateNewAccessToken
    * @description Generates a new Access Token, and binds it to req and session
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @param {mongoose.ObjectId} userId 
    * @param {String} jwtId 
    * @returns 
@@ -246,10 +246,10 @@ class TokenHelper {
   /**
    * @method TokenHelper.GenerateNewRefreshToken
    * @description Generates a new Refresh Token, and binds it to req and session
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @param {mongoose.ObjectId} userId 
-   * @param {*} ipAddress 
+   * @param {String} ipAddress 
    * @param {String} userAgent 
    * @param {String} token 
    * @returns 
@@ -282,8 +282,8 @@ class TokenHelper {
 
   /**
    * @method TokenHelper.GetRefreshTokenRecord - Get Refresh Token Record method
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @param {Boolean} isLean 
    * @param {Boolean} isRevoked 
    * @returns 
