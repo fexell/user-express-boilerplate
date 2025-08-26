@@ -123,7 +123,6 @@ class AuthMiddleware {
         const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken(
           req,
           res,
-          userId,
           newRefreshToken,
         )
 

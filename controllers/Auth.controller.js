@@ -70,7 +70,6 @@ class AuthController {
       const newRefreshTokenRecord           = await TokenHelper.GenerateNewRefreshToken(
         req,
         res,
-        user._id,
         refreshToken,
       )
 

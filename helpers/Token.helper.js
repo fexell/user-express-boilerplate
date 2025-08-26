@@ -254,12 +254,12 @@ class TokenHelper {
    * @param {String} token 
    * @returns 
    */
-  static async GenerateNewRefreshToken( req, res, userId, token ) {
+  static async GenerateNewRefreshToken( req, res, token ) {
     try {
 
       // Generate a new Refresh Token record
       const newRefreshTokenRecord           = new RefreshTokenModel({
-        userId                              : userId,
+        userId                              : UserHelper.GetUserId( req, res ),
         deviceId                            : UserHelper.GetDeviceId( req, res ),
         ipAddress                           : UserHelper.GetIpAddress( req, res ),
         userAgent                           : UserHelper.GetUserAgent( req, res ),
