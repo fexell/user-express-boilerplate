@@ -87,6 +87,19 @@ UserRouter.get( '/find/username/:username', [
 ], UserController.GetUserByUsername )
 
 /**
+ * @route PUT /api/user/update/me
+ * @description Update the currently logged in user's details
+ * @returns {User} The user's details
+ */
+UserRouter.put( '/update/me', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
+  AuthMiddleware.RefreshTokenRevoked,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountInactive,
+], UserController.UpdateUser )
+
+/**
  * @route POST /api/user/
  * @description Create a new user
  * @returns {User} The user's details

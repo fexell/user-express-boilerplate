@@ -114,7 +114,7 @@ UserSchema.pre('save', async function( next ) {
     this.password                           = await PasswordHelper.Hash( this.password )
 
   if(this.modifiedPaths().length === 0)
-    return next(new ErrorHelper( t('password.invalid'), 400 ))
+    return next(new ErrorHelper( t('user.noChanges'), 400 ))
 
   return next()
 })

@@ -4,6 +4,7 @@ import UserModel from '../models/User.model.js'
 
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import ResponseHelper from '../helpers/Response.helper.js'
+import StringHelper from '../helpers/String.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 
 /**
@@ -16,6 +17,7 @@ import UserHelper from '../helpers/User.helper.js'
  * @method UserController.GetUserByEmail Get the user's details by email
  * @method UserController.GetUserByUsername Get the user's details by username
  * @method UserController.GetAllUsers Get/return all users
+ * @method UserController.UpdateUser Update the user's own details
  */
 class UserController {
 
@@ -217,7 +219,58 @@ class UserController {
       return next( error )
     }
   }
+
+  /**
+   * @method UserController.UpdateUser
+   * @description The controller method handling updating _the_ user's own details
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns {JSON} Success message, and the user's details
+   */
+  static async UpdateUser( req, res, next ) {
+    try {
+
+      // Destructure the request body
+      const {
+        email,
+        username,
+        forename,
+        surname,
+      }                                     = req.body
+
+      // Get the user, by id
+      const user                            = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ) )
+
+      // If email is set and doesn't match the current email
+      if( email && email !== user.email )
+        user.email                          = email.toLowerCase()
+
+      // If username is set and doesn't match the current username
+      if( username && username !== user.username )
+        user.username                       = username
+
+      // If forename is set and doesn't match the current forename
+      if( forename && forename !== user.forename )
+        user.forename                       = StringHelper.Capitalize( forename )
+
+      // If surname is set and doesn't match the current surname
+      if( surname && surname !== user.surname )
+        user.surname                        = StringHelper.Capitalize( surname )
+
+      // Save the user
+      await user.save()
+
+      // Return the user, and a success message
+      return ResponseHelper.Success( res, req.t('user.updated'), 200, UserModel.SerializeUser( user ), 'user' )
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
 }
+
+
 
 export {
   UserController as default,

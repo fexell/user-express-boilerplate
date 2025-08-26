@@ -18,6 +18,7 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @method AuthController.Logout - Logout method
  * @method AuthController.VerifyEmail - Verify email method
  * @method AuthController.UnitsLoggedInOn - Returns the units the user is currently logged in on
+ * @method AuthController.RevokeRefreshToken - The controller method handling revoking a refresh token
  */
 class AuthController {
 
@@ -259,6 +260,44 @@ class AuthController {
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('refreshTokenRecord.revoked') )
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async UpdatePassword( req, res, next ) {
+    try {
+
+      // Destructure the request body
+      const {
+        password,
+        newPassword,
+        newPasswordConfirm,
+      }                                     = req.body
+
+      if( !password )
+        throw new CustomErrorHelper( req.t('password.required') )
+
+      else if( !newPassword )
+        throw new CustomErrorHelper( req.t('newPassword.required') )
+
+      else if( !newPasswordConfirm )
+        throw new CustomErrorHelper( req.t('newPasswordConfirm.required') )
+
+      else if( newPassword !== newPasswordConfirm )
+        throw new CustomErrorHelper( req.t('password.mismatch') )
+
+      const user                            = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ), true )
+
+      if( !user )
+        throw new CustomErrorHelper( req.t('user.notFound') )
+
+      user.password                         = newPassword
+
+      await user.save()
+
+      return ResponseHelper.Success( res, req.t('password.updated') )
 
     } catch ( error ) {
       return next( error )

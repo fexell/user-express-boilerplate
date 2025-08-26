@@ -31,9 +31,6 @@ class ErrorMiddleware {
     if( NODE_ENV === 'development' )
       console.error( error )
 
-    // Log the error
-    LoggerMiddleware.error( error )
-
     // Return the error
     return ResponseHelper.Error( res, error.message, error.status )
   }

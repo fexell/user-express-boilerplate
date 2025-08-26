@@ -6,10 +6,12 @@
   "user.alreadyLoggedOut": "You are already logged out.",
   "user.unauthorized": "This route is protected, and you are not authorized to access it.",
   "user.notAuthenticated": "You are not authenticated.",
+  "user.noChanges": "You have not made any changes.",
   "user.id.invalid": "User ID is invalid.",
   "user.id.notFound": "User ID not found.",
 
   "user.found": "User found.",
+  "user.updated": "User updated.",
   "user.data.found": "User data found.",
   "user.units.found": "Units found.",
   
