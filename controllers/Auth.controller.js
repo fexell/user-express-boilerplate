@@ -266,6 +266,14 @@ class AuthController {
     }
   }
 
+  /**
+   * @method AuthController.UpdatePassword
+   * @description The controller method handling updating a user's password
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns {JSON} Success response
+   */
   static async UpdatePassword( req, res, next ) {
     try {
 
@@ -276,27 +284,40 @@ class AuthController {
         newPasswordConfirm,
       }                                     = req.body
 
+      // If password field wasn't found
       if( !password )
         throw new CustomErrorHelper( req.t('password.required') )
 
+      // If the new password field wasn't found
       else if( !newPassword )
         throw new CustomErrorHelper( req.t('newPassword.required') )
 
+      // If the new password confirm field wasn't found
       else if( !newPasswordConfirm )
         throw new CustomErrorHelper( req.t('newPasswordConfirm.required') )
 
+      // If the password is the same as the new password
+      else if( password === newPassword )
+        throw new CustomErrorHelper( req.t('password.sameAsOld') )
+
+      // If the new password doesn't match the new password confirm
       else if( newPassword !== newPasswordConfirm )
         throw new CustomErrorHelper( req.t('password.mismatch') )
 
+      // Attempt to find the user, by id
       const user                            = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ), true )
 
+      // If the user was not found
       if( !user )
         throw new CustomErrorHelper( req.t('user.notFound') )
 
-      user.password                         = newPassword
+      // Hash the new password, and set it to the user
+      user.password                         = await PasswordHelper.Hash( newPassword )
 
+      // Save the user
       await user.save()
 
+      // Return the success response
       return ResponseHelper.Success( res, req.t('password.updated') )
 
     } catch ( error ) {
