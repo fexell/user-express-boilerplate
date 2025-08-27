@@ -18,6 +18,8 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @classdesc Contains all methods related to authentication and authorization
  * 
  * @method AuthMiddleware.Authenticate Authentication middleware, checking whether the user has access to the route
+ * @method AuthMiddleware.DataCheck Authentication middleware, that checks nothing has been tampered with
+ * @method AuthMiddleware.ValidateTokens Authentication middleware, checking whether the tokens are valid
  * @method AuthMiddleware.AlreadyLoggedIn Authentication middleware, checking whether the user is already logged in
  * @method AuthMiddleware.AlreadyLoggedOut Authentication middleware, checking whether the user is already logged out
  * @method AuthMiddleware.RoleChecker Authorization middleware, checking whether the user has the required role to access the route
@@ -29,11 +31,12 @@ import TokenHelper from '../helpers/Token.helper.js'
  * 
  * Middlewares should be run in following order:
  * 1. Authenticate
- * 2. DataCheck
- * 3. RefreshTokenRevoked
- * 4. EmailVerified
- * 5 AccountInactive
- * 6. RoleChecker
+ * 2. ValidateTokens
+ * 3. DataCheck
+ * 4. RefreshTokenRevoked
+ * 5. EmailVerified
+ * 6  AccountInactive
+ * 7. RoleChecker
  */
 class AuthMiddleware {
 
@@ -124,6 +127,14 @@ class AuthMiddleware {
     }
   }
 
+  /**
+   * @method AuthMiddleware.DataCheck
+   * @description A middleware that checks the validity of the user data
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
   static async DataCheck( req, res, next ) {
     try {
       const userId                          = UserHelper.GetUserId( req, res )
@@ -153,6 +164,14 @@ class AuthMiddleware {
     }
   }
 
+  /**
+   * @method AuthMiddleware.ValidateTokens
+   * @description A middleware that checks the validity of the access token and refresh token
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns 
+   */
   static async ValidateTokens( req, res, next ) {
     try {
 
