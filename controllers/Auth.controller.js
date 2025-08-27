@@ -221,7 +221,7 @@ class AuthController {
       const sort                            = req.query.sort || '-createdAt'
 
       // Attempt to find the refresh token records
-      const units                           = await RefreshTokenModel.find( { userId: userId, isRevoked: false } ).sort( sort ).lean()
+      const units                           = await RefreshTokenModel.find( { userId: userId } ).sort( sort ).lean()
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('user.units.found'), 200, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
