@@ -21,7 +21,7 @@ import UserHelper from './User.helper.js'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : '10s', // 3 minutes
+  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '3m', // 3 minutes
   REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
@@ -369,37 +369,30 @@ class TokenHelper {
    */
   static async RevokeRefreshToken( req, res, next, isMany = false ) {
     try {
+
+      // First, get the refresh token id
       const refreshTokenId                  = this.GetRefreshTokenId( req, res )
-      const refreshTokenRecords             = !isMany
-        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ), token: this.GetRefreshToken( req, res ) })
-        : await RefreshTokenModel.find({ deviceId: UserHelper.GetDeviceId( req, res ) })
 
-      if( refreshTokenRecords.length >= 2 ) {
-        refreshTokenRecords.forEach( async ( refreshTokenRecord ) => {
-          const decodedRefreshToken         = this.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
+      // Get the refresh token record, based on refresh token id, device id and refresh token
+      const refreshTokenRecord              = await RefreshTokenModel.findOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ), token: this.GetRefreshToken( req, res ) })
 
-          const newTokenBlacklistRecord     = new TokenBlacklistModel( {
-            deviceId                        : refreshTokenRecord.deviceId,
-            token                           : refreshTokenRecord.token,
-            expireAt                        : decodedRefreshToken.exp * 1000,
-          })
+      // Attempt to decode the refresh token
+      const decodedRefreshToken             = this.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
 
-          await newTokenBlacklistRecord.save()
-          await refreshTokenRecord.deleteOne()
-        })
-      } else {
+      // Create a new token blacklist record, with the refresh token, device id and the time of expiration
+      const newTokenBlacklistRecord         = new TokenBlacklistModel({
+        deviceId                            : refreshTokenRecord.deviceId,
+        token                               : refreshTokenRecord.token,
+        expireAt                            : decodedRefreshToken.exp * 1000,
+      })
 
-        const decodedRefreshToken           = this.ValidateAndDecodeToken( req, refreshTokenRecords.token, 'refresh' )
+      // Save the token blacklist record
+      await newTokenBlacklistRecord.save()
 
-        const newTokenBlacklistRecord       = new TokenBlacklistModel({
-          deviceId                          : refreshTokenRecords.deviceId,
-          token                             : refreshTokenRecords.token,
-          expireAt                          : decodedRefreshToken.exp * 1000,
-        })
-
-        await newTokenBlacklistRecord.save()
-        await refreshTokenRecords.deleteOne()
-      }
+      // Delete the refresh token record
+      return refreshTokenRecord.deleteOne()
+        .then(() => ({ success: true }))
+        .catch(( error ) => ({ success: false, error }))
       
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )

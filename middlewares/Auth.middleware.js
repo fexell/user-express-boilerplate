@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import mongoose from 'mongoose'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -93,26 +94,29 @@ class AuthMiddleware {
           return AuthController.Logout( req, res, next, true )
         }
 
-        const decodedRefreshToken           = TokenHelper.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
-
-        // If the refresh token is not valid, logout the user
-        if( !decodedRefreshToken )
-          return AuthController.Logout( req, res, next, true )
-
+        // Revoke the current refresh token
         await TokenHelper.RevokeRefreshToken( req, res, next )
 
+        // Generate new JWT ID
         const jwtId                         = uuidv4()
+
+        // Sign a new refresh token
         const newRefreshToken               = TokenHelper.SignRefreshToken( userId )
 
+        // Generate a new refresh token record
         const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, newRefreshToken )
+
+        // Generate a new access token
         const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
 
+        // Bind the variables to req and session
         req.jwtId                           = req.session.jwtId                           = jwtId
         req.userId                          = req.session.userId                          = userId
         req.accessToken                     = req.session.accessToken                     = newAccessToken
         req.refreshToken                    = req.session.refreshToken                    = newRefreshTokenRecord.token
         req.refreshTokenId                  = req.session.refreshTokenId                  = newRefreshTokenRecord._id
 
+        // Continue to the next middleware or route
         return next()
       }
     } catch ( error ) {
@@ -122,39 +126,47 @@ class AuthMiddleware {
 
   static async DataCheck( req, res, next ) {
     try {
+      const userId                          = UserHelper.GetUserId( req, res )
+      const accessToken                     = TokenHelper.GetAccessToken( req, res )
+      const RefreshToken                    = TokenHelper.GetRefreshTokenId( req, res )
 
-      // Get the user id from session, and if req.userId is not found, get the user id from cookie
-      const userIdFromSession               = req.session.userId
-      const userIdFromCookie                = req.userId || CookieHelper.GetUserIdCookie( req, res )
+      const userIdBuffer                    = Buffer.from( userId )
+      const accessTokenBuffer               = Buffer.from( accessToken )
+      const refreshTokenBuffer              = Buffer.from( RefreshToken )
 
-      // Get the access token from session, and if req.accessToken is not found, get the access token from cookie
-      const accessTokenFromSession          = req.session.accessToken
-      const accessTokenFromCookie           = req.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
+      const sessionUserIdBuffer             = Buffer.from( req.session.userId )
+      const sessionAccessTokenBuffer        = Buffer.from( req.session.accessToken )
+      const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshTokenId )
 
-      // Get the refresh token id from session, and if req.refreshTokenId is not found, get the refresh token id from cookie
-      const refreshTokenFromSession         = req.session.refreshToken
-      const refreshTokenFromCookie          = req.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
-
-      // If the user id, access token and refresh token id from session and cookie are not the same
       if(
-        userIdFromSession && userIdFromCookie &&
-        userIdFromSession !== userIdFromCookie
+        !crypto.timingSafeEqual( userIdBuffer, sessionUserIdBuffer ) ||
+        !crypto.timingSafeEqual( accessTokenBuffer, sessionAccessTokenBuffer ) ||
+        !crypto.timingSafeEqual( refreshTokenBuffer, sessionRefreshTokenBuffer )
       )
         return AuthController.Logout( req, res, next, true )
 
-      // If the access token and refresh token id from session and cookie are not the same
-      else if(
-        accessTokenFromSession && accessTokenFromCookie &&
-        accessTokenFromSession !== accessTokenFromCookie
-      )
+      // Continue to the next middleware or route
+      return next()
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async ValidateTokens( req, res, next ) {
+    try {
+
+      const accessToken                     = TokenHelper.GetAccessToken( req, res )
+      const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
+
+      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
+      const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, refreshToken, 'refresh' )
+
+      if( !decodedAccessToken || !decodedRefreshToken )
         return AuthController.Logout( req, res, next, true )
 
-      // If the refresh token id from session and cookie are not the same
-      else if(
-        refreshTokenFromSession && refreshTokenFromCookie &&
-        refreshTokenFromSession !== refreshTokenFromCookie
-      )
-        return AuthController.Logout( req, res, next, true )
+      req.accessToken                       = req.session.accessToken                     = accessToken
+      req.refreshToken                      = req.session.refreshToken                    = refreshToken
 
       // Continue to the next middleware or route
       return next()

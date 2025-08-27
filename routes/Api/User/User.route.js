@@ -27,6 +27,7 @@ const UserRouter                            = Router()
 */
 UserRouter.get( '/find/me', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
@@ -40,6 +41,7 @@ UserRouter.get( '/find/me', [
  */
 UserRouter.get( '/find/all', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
@@ -54,6 +56,7 @@ UserRouter.get( '/find/all', [
  */
 UserRouter.get( '/find/id/:id', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
@@ -67,6 +70,7 @@ UserRouter.get( '/find/id/:id', [
  */
 UserRouter.get( '/find/email/:email', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
@@ -80,6 +84,7 @@ UserRouter.get( '/find/email/:email', [
  */
 UserRouter.get( '/find/username/:username', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
@@ -93,6 +98,7 @@ UserRouter.get( '/find/username/:username', [
  */
 UserRouter.put( '/update/me', [
   AuthMiddleware.Authenticate,
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,

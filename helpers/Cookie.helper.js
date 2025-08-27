@@ -14,7 +14,8 @@ import ResponseHelper from './Response.helper.js'
  * @property {String} USER_ID - User Id Cookie Name
  */
 const CookieNames                           = {
-  REFRESH_TOKEN                             : 'refreshTokenId',
+  REFRESH_TOKEN_ID                          : 'refreshTokenId',
+  REFRESH_TOKEN                             : 'refreshToken',
   ACCESS_TOKEN                              : 'accessToken',
   USER_ID                                   : 'userId',
 }
@@ -150,7 +151,7 @@ class CookieHelper {
    */
   static SetAccessTokenCookie( res, accessToken ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.TenSeconds )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.ThreeMinutes )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -198,7 +199,7 @@ class CookieHelper {
 
   static SetRefreshTokenIdCookie( res, refreshTokenId ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN, refreshTokenId, TimeHelper.OneMonth )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN_ID, refreshTokenId, TimeHelper.OneMonth )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
