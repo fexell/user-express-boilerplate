@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import requestIp from 'request-ip'
 
 import UserModel from '../models/User.model.js'
@@ -124,8 +125,15 @@ class UserHelper {
   static GetDeviceId( req, res ) {
     try {
 
-      // Get the fingerprint
-      return req.fingerprint.hash
+      const userId                          = this.GetUserId( req, res )
+      const ipAddress                       = this.GetIpAddress( req, res )
+      const userAgent                       = this.GetUserAgent( req, res )
+
+      const data                            = `${ userId }|${ ipAddress }|${ userAgent }`
+
+      const fingerprint                     = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
+
+      return fingerprint
 
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )

@@ -137,18 +137,24 @@ class AuthMiddleware {
    */
   static async DataCheck( req, res, next ) {
     try {
+
+      // Get the user id, access token and refresh token
       const userId                          = UserHelper.GetUserId( req, res )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
       const RefreshToken                    = TokenHelper.GetRefreshTokenId( req, res )
 
+      // Create a buffer from the user id, access token and refresh token
       const userIdBuffer                    = Buffer.from( userId )
       const accessTokenBuffer               = Buffer.from( accessToken )
       const refreshTokenBuffer              = Buffer.from( RefreshToken )
 
+      // Create a buffer from the session user id, access token and refresh token
       const sessionUserIdBuffer             = Buffer.from( req.session.userId )
       const sessionAccessTokenBuffer        = Buffer.from( req.session.accessToken )
       const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshTokenId )
 
+      // If the user id, access token and refresh token do not match the session user id,
+      // access token and refresh token, logout the user
       if(
         !crypto.timingSafeEqual( userIdBuffer, sessionUserIdBuffer ) ||
         !crypto.timingSafeEqual( accessTokenBuffer, sessionAccessTokenBuffer ) ||
@@ -175,15 +181,19 @@ class AuthMiddleware {
   static async ValidateTokens( req, res, next ) {
     try {
 
+      // Get the access token and refresh token
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
       const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
 
+      // Validate and decode the access token and refresh token
       const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
       const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, refreshToken, 'refresh' )
 
+      // If the tokens are not valid, logout the user
       if( !decodedAccessToken || !decodedRefreshToken )
         return AuthController.Logout( req, res, next, true )
 
+      // Bind the variables to req and session
       req.accessToken                       = req.session.accessToken                     = accessToken
       req.refreshToken                      = req.session.refreshToken                    = refreshToken
 
