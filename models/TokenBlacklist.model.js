@@ -1,6 +1,10 @@
 import mongoose, { Schema } from 'mongoose'
 
 const TokenBlacklistSchema                  = new Schema({
+  deviceId                                  : {
+    type                                    : String,
+    required                                : true,
+  },
   token                                     : {
     type                                    : String,
     required                                : true,
@@ -16,7 +20,7 @@ const TokenBlacklistSchema                  = new Schema({
   timestamps                                : true,
 })
 
-const TokenBlacklistModel                   = mongoose.model( 'BlacklistToken', TokenBlacklistSchema )
+const TokenBlacklistModel                   = mongoose.model( 'TokenBlacklist', TokenBlacklistSchema )
 
 export {
   TokenBlacklistModel as default,

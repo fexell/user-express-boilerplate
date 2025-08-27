@@ -22,10 +22,6 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : String,
     required                                : true,
   },
-  isRevoked                                 : {
-    type                                    : Boolean,
-    default                                 : false,
-  },
 }, {
   timestamps                                : true,
 })

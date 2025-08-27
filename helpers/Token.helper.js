@@ -7,6 +7,7 @@ import AuthController from '../controllers/Auth.controller.js'
 import { JWT_SECRET, JWT_ACCESS_TOKEN_EXPIRATION, JWT_REFRESH_TOKEN_EXPIRATION } from '../configs/Environment.config.js'
 
 import RefreshTokenModel from '../models/RefreshToken.model.js'
+import TokenBlacklistModel from '../models/TokenBlacklist.model.js'
 
 import CookieHelper from './Cookie.helper.js'
 import CustomErrorHelper from './Error.helper.js'
@@ -20,7 +21,7 @@ import UserHelper from './User.helper.js'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '3m', // 3 minutes
+  ACCESS_TOKEN                              : '10s', // 3 minutes
   REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
@@ -225,6 +226,17 @@ class TokenHelper {
     }
   }
 
+  static GetRefreshToken( req, res ) {
+    try {
+
+      // Get the Refresh Token from either req, session or cookie
+      return req.refreshToken || req.session.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
+
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
   /**
    * @method TokenHelper.GetRefreshTokenId
    * @description Gets the Refresh Token Id, from either req, session or cookie
@@ -254,12 +266,12 @@ class TokenHelper {
    * @param {String} token 
    * @returns 
    */
-  static async GenerateNewRefreshToken( req, res, token ) {
+  static async GenerateNewRefreshToken( req, res, token, userId ) {
     try {
 
       // Generate a new Refresh Token record
       const newRefreshTokenRecord           = new RefreshTokenModel({
-        userId                              : UserHelper.GetUserId( req, res ),
+        userId                              : userId || UserHelper.GetUserId( req, res ),
         deviceId                            : UserHelper.GetDeviceId( req, res ),
         ipAddress                           : UserHelper.GetIpAddress( req, res ),
         userAgent                           : UserHelper.GetUserAgent( req, res ),
@@ -270,6 +282,7 @@ class TokenHelper {
       await newRefreshTokenRecord.save()
 
       // Create the Refresh Token cookie
+      CookieHelper.SetRefreshTokenCookie( res, newRefreshTokenRecord.token )
       CookieHelper.SetRefreshTokenIdCookie( res, newRefreshTokenRecord._id )
 
       // Return the Refresh Token record
@@ -288,11 +301,12 @@ class TokenHelper {
    * @param {Boolean} isRevoked 
    * @returns 
    */
-  static async GetRefreshTokenRecord( req, res, isLean = false, isRevoked = false ) {
+  static async GetRefreshTokenRecord( req, res, isLean = false ) {
     try {
 
       // Get the user id and refresh token id
       const userId                          = UserHelper.GetUserId( req, res )
+      const refreshToken                    = this.GetRefreshToken( req, res )
       const refreshTokenId                  = this.GetRefreshTokenId( req, res )
 
       // If the user id and refresh token id are not found, let the user know they are not authenticated
@@ -301,8 +315,8 @@ class TokenHelper {
 
       // Attempt to find the refresh token record
       const refreshTokenRecord              = !isLean
-        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked })
-        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked }).lean()
+        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken })
+        : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken }).lean()
 
       // Return the refresh token record
       return refreshTokenRecord
@@ -321,19 +335,20 @@ class TokenHelper {
    * @param {Boolean} isRevoked 
    * @returns 
    */
-  static async GetRefreshTokenRecords( req, res, isLean = false, isRevoked = false ) {
+  static async GetRefreshTokenRecords( req, res, isLean = false ) {
     try {
 
       // Get the user id
       const userId                          = UserHelper.GetUserId( req, res )
+      const refreshToken                    = this.GetRefreshToken( req, res )
 
       if( !userId )
         throw new CustomErrorHelper( req.t( 'user.id.notFound' ) )
 
       // Attempt to find the refresh token records
       const refreshTokenRecords             = !isLean
-        ? await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked })
-        : await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), isRevoked: isRevoked }).lean()
+        ? await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken })
+        : await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken }).lean()
 
       // Return the refresh token records
       return refreshTokenRecords
@@ -352,24 +367,40 @@ class TokenHelper {
    * @param {Boolean} many 
    * @returns 
    */
-  static async RevokeRefreshToken( req, res, isMany = false ) {
+  static async RevokeRefreshToken( req, res, next, isMany = false ) {
     try {
-
-      // Get the refresh token id
       const refreshTokenId                  = this.GetRefreshTokenId( req, res )
-
-      // If the refresh token id is not found, let the user know they are not authenticated
-      if( !refreshTokenId )
-        throw new CustomErrorHelper( req.t( 'refreshToken.id.notFound' ) )
-
-      // Attempt to find the refresh token record
       const refreshTokenRecords             = !isMany
-        ? await RefreshTokenModel.updateOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
-        : await RefreshTokenModel.updateMany({ userId: UserHelper.GetUserId( req, res ), deviceId: UserHelper.GetDeviceId( req, res ) }, { $set: { isRevoked: true } })
+        ? await RefreshTokenModel.findOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ), token: this.GetRefreshToken( req, res ) })
+        : await RefreshTokenModel.find({ deviceId: UserHelper.GetDeviceId( req, res ) })
 
-      // Return the success response
-      return ResponseHelper.Success( res, req.t( 'refreshTokenRecord.revoked' ) )
+      if( refreshTokenRecords.length >= 2 ) {
+        refreshTokenRecords.forEach( async ( refreshTokenRecord ) => {
+          const decodedRefreshToken         = this.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
 
+          const newTokenBlacklistRecord     = new TokenBlacklistModel( {
+            deviceId                        : refreshTokenRecord.deviceId,
+            token                           : refreshTokenRecord.token,
+            expireAt                        : decodedRefreshToken.exp * 1000,
+          })
+
+          await newTokenBlacklistRecord.save()
+          await refreshTokenRecord.deleteOne()
+        })
+      } else {
+
+        const decodedRefreshToken           = this.ValidateAndDecodeToken( req, refreshTokenRecords.token, 'refresh' )
+
+        const newTokenBlacklistRecord       = new TokenBlacklistModel({
+          deviceId                          : refreshTokenRecords.deviceId,
+          token                             : refreshTokenRecords.token,
+          expireAt                          : decodedRefreshToken.exp * 1000,
+        })
+
+        await newTokenBlacklistRecord.save()
+        await refreshTokenRecords.deleteOne()
+      }
+      
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }

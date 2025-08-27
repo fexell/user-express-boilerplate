@@ -8,7 +8,7 @@ const CsrfRouter                            = Router()
 
 CsrfRouter.get('/', async ( req, res, next ) => {
   try {
-    return ResponseHelper.Success( res, 'CSRF token generated', CsrfProtectionMiddleware.generateToken( req ), 'token' )
+    return ResponseHelper.Success( res, 'CSRF token generated', 200, CsrfProtectionMiddleware.generateToken( req ), 'token' )
   } catch ( error ) {
     return next( error )
   }

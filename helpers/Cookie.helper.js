@@ -150,7 +150,7 @@ class CookieHelper {
    */
   static SetAccessTokenCookie( res, accessToken ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.ThreeMinutes )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.TenSeconds )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -172,7 +172,7 @@ class CookieHelper {
   }
 
   /**
-   * Refresh Token Id Cookies
+   * Refresh Token Cookies
    * 
    * @method CookieHelper.SetRefreshTokenIdCookie
    * @description Set Refresh Token Id Cookie
@@ -180,6 +180,22 @@ class CookieHelper {
    * @param {*} refreshTokenId 
    * @returns 
    */
+  static SetRefreshTokenCookie( res, refreshToken ) {
+    try {
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN, refreshToken, TimeHelper.OneMonth )
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
+  static GetRefreshTokenCookie( req, res ) {
+    try {
+      return req.signedCookies.refreshToken || null
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
   static SetRefreshTokenIdCookie( res, refreshTokenId ) {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN, refreshTokenId, TimeHelper.OneMonth )

@@ -40,22 +40,22 @@ class AuthController {
       }                                     = req.body
 
       // if the email is empty
-      if(!email)
+      if( !email )
         throw new CustomErrorHelper( req.t('email.required') )
 
       // if the password is empty
-      else if(!password)
+      else if( !password )
         throw new CustomErrorHelper( req.t('password.required') )
 
       // Get the user record by email
       const user                            = await UserHelper.GetUserByEmail( req, res, email, true, true )
 
       // If the user was not found
-      if(!user)
+      if( !user )
         throw new CustomErrorHelper( req.t('user.notFound') )
 
       // If the password is incorrect
-      if(!await PasswordHelper.Verify( user.password, password ))
+      if( !await PasswordHelper.Verify( user.password, password ) )
         throw new CustomErrorHelper( req.t('password.invalid') )
 
       // JWT ID for the access token
@@ -72,16 +72,18 @@ class AuthController {
         req,
         res,
         refreshToken,
+        user._id,
       )
 
       // Set the user id cookie
       CookieHelper.SetUserIdCookie( res, user._id )
 
       // Set everything in the session
-      req.jwtId                             = req.session.jwtId                          = jwtId
-      req.userId                            = req.session.userId                         = user._id
-      req.accessToken                       = req.session.accessToken                    = accessToken
-      req.refreshTokenId                    = req.session.refreshTokenId                 = newRefreshTokenRecord._id
+      req.jwtId                             = req.session.jwtId                           = jwtId
+      req.userId                            = req.session.userId                          = user._id
+      req.accessToken                       = req.session.accessToken                     = accessToken
+      req.refreshToken                      = req.session.refreshToken                    = newRefreshTokenRecord.token
+      req.refreshTokenId                    = req.session.refreshTokenId                  = newRefreshTokenRecord._id
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('user.login.success'), 200, UserModel.SerializeUser( user ), 'user' )
@@ -105,35 +107,28 @@ class AuthController {
 
       // Get the user id and refresh token id
       const userId                          = UserHelper.GetUserId( req, res )
-      const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
+      const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
 
       // If the user id and refresh token id are not found
-      if(!userId && !refreshTokenId)
+      if(!userId && !refreshToken)
         throw new CustomErrorHelper( req.t('user.alreadyLoggedOut') )
 
       // Attempt to find the refresh token record
-      const refreshTokenRecord              = await RefreshTokenModel.findOne( {
-        _id                                 : refreshTokenId,
-        userId                              : userId,
-        deviceId                            : UserHelper.GetDeviceId( req, res ),
-        isRevoked                           : false,
-      } )
+      const refreshTokenRecord              = await RefreshTokenModel.findOne({
+        userId                            : userId,
+        deviceId                          : UserHelper.GetDeviceId( req, res ),
+        token                             : refreshToken,
+      })
 
       // If the refresh token record was found
-      if(refreshTokenRecord) {
-
-        // Revoke the refresh token
-        refreshTokenRecord.isRevoked        = true
-
-        // Save the refresh token
-        await refreshTokenRecord.save()
-      }
+      if(refreshTokenRecord)
+        await TokenHelper.RevokeRefreshToken( req, res, next )
 
       // Clear all the session variables
       delete req.session.jwtId
       delete req.session.userId
       delete req.session.accessToken
-      delete req.session.refreshTokenId
+      delete req.session.refreshToken
 
       // Clear all the cookies
       CookieHelper.ClearCookie( res, CookieNames.USER_ID )
@@ -253,10 +248,11 @@ class AuthController {
         throw new CustomErrorHelper( req.t('refreshToken.id.notFound') )
 
       // Attempt to find the refresh token record
-      const refreshTokenRecords             = await RefreshTokenModel.findOneAndUpdate( {
-          _id                               : refreshTokenId,
-          userId                            : UserHelper.GetUserId( req, res ),
-        },{ $set: { isRevoked: true } } )
+      const refreshTokenRecord              = await RefreshTokenModel.findOne({ _id: refreshTokenId })
+
+      // If the refresh token record was not found
+      if( !refreshTokenRecord )
+        throw new CustomErrorHelper( req.t('refreshTokenRecord.notFound') )
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('refreshTokenRecord.revoked') )

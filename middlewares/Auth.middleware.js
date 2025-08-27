@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import AuthController from '../controllers/Auth.controller.js'
 
 import RefreshTokenModel from '../models/RefreshToken.model.js'
+import TokenBlacklistModel from '../models/TokenBlacklist.model.js'
 import UserModel from '../models/User.model.js'
 
 import CookieHelper from '../helpers/Cookie.helper.js'
@@ -86,59 +87,32 @@ class AuthMiddleware {
         ) {
 
           // Revoke the current refresh token
-          await TokenHelper.RevokeRefreshToken( req, res )
+          await TokenHelper.RevokeRefreshToken( req, res, next )
 
           // Logout the user (force logout since the device id does not match the one in the refresh token record)
           return AuthController.Logout( req, res, next, true )
         }
-        
-        // Try to decode the refresh token
+
         const decodedRefreshToken           = TokenHelper.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
 
         // If the refresh token is not valid, logout the user
         if( !decodedRefreshToken )
           return AuthController.Logout( req, res, next, true )
 
-        // If the user id from the decoded refresh token does not match the user id from the session, logout the user
-        if( decodedRefreshToken.userId.toString() !== userId.toString() )
-          return AuthController.Logout( req, res, next, true )
+        await TokenHelper.RevokeRefreshToken( req, res, next )
 
-        // Revoke the current refresh token
-        refreshTokenRecord.isRevoked        = true
-
-        // Save the old refresh token
-        await refreshTokenRecord.save()
-
-        // Get all the refresh tokens for the user, based on the user id and device id
-        const refreshTokenRecords           = await TokenHelper.GetRefreshTokenRecords( req, res, true )
-
-        // If the user has more than one refresh token for 1 device, revoke all the refresh tokens
-        if(refreshTokenRecords.length > 1)
-          await TokenHelper.RevokeRefreshToken( req, res, true )
-
-        // Sign a new refresh token
+        const jwtId                         = uuidv4()
         const newRefreshToken               = TokenHelper.SignRefreshToken( userId )
 
-        // Generate a new refresh token record
-        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken(
-          req,
-          res,
-          newRefreshToken,
-        )
+        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, newRefreshToken )
+        const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
 
-        // Assign a new JWT ID
-        const jwtId                         = uuidv4()
+        req.jwtId                           = req.session.jwtId                           = jwtId
+        req.userId                          = req.session.userId                          = userId
+        req.accessToken                     = req.session.accessToken                     = newAccessToken
+        req.refreshToken                    = req.session.refreshToken                    = newRefreshTokenRecord.token
+        req.refreshTokenId                  = req.session.refreshTokenId                  = newRefreshTokenRecord._id
 
-        // Generate a new access token
-        const newAccessToken                = TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
-
-        // Save the JWT ID in both req and req.session
-        req.jwtId                           = req.session.jwtId                          = jwtId
-        req.userId                          = req.session.userId                         = userId
-        req.accessToken                     = req.session.accessToken                    = newAccessToken
-        req.refreshTokenId                  = req.session.refreshTokenId                 = newRefreshTokenRecord._id
-
-        // Continue to the next middleware or route
         return next()
       }
     } catch ( error ) {
@@ -158,8 +132,8 @@ class AuthMiddleware {
       const accessTokenFromCookie           = req.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
 
       // Get the refresh token id from session, and if req.refreshTokenId is not found, get the refresh token id from cookie
-      const refreshTokenIdFromSession       = req.session.refreshTokenId
-      const refreshTokenIdFromCookie        = req.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
+      const refreshTokenFromSession         = req.session.refreshToken
+      const refreshTokenFromCookie          = req.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
 
       // If the user id, access token and refresh token id from session and cookie are not the same
       if(
@@ -177,8 +151,8 @@ class AuthMiddleware {
 
       // If the refresh token id from session and cookie are not the same
       else if(
-        refreshTokenIdFromSession && refreshTokenIdFromCookie &&
-        refreshTokenIdFromSession !== refreshTokenIdFromCookie
+        refreshTokenFromSession && refreshTokenFromCookie &&
+        refreshTokenFromSession !== refreshTokenFromCookie
       )
         return AuthController.Logout( req, res, next, true )
 
@@ -353,12 +327,11 @@ class AuthMiddleware {
   static async RefreshTokenRevoked( req, res, next ) {
     try {
 
-      // Get the refresh token record
-      const refreshTokenRecord              = await TokenHelper.GetRefreshTokenRecord( req, res, true, true )
+      const revokedRefreshToken             = await TokenBlacklistModel.findOne({ token: TokenHelper.GetRefreshToken( req, res ) })
 
       // If the refresh token is revoked
-      if( refreshTokenRecord && refreshTokenRecord.isRevoked )
-        return AuthController.Logout( req, res, next, 'user.logout.revoked' )
+      if( revokedRefreshToken )
+        throw new CustomErrorHelper( req.t('refreshToken.revoked') )
 
       // Continue to the next middleware or route
       return next()
