@@ -14,10 +14,11 @@ import ResponseHelper from './Response.helper.js'
  * @property {String} USER_ID - User Id Cookie Name
  */
 const CookieNames                           = {
-  REFRESH_TOKEN_ID                          : 'refreshTokenId',
-  REFRESH_TOKEN                             : 'refreshToken',
-  ACCESS_TOKEN                              : 'accessToken',
   USER_ID                                   : 'userId',
+  ACCESS_TOKEN                              : 'accessToken',
+  REFRESH_TOKEN                             : 'refreshToken',
+  REFRESH_TOKEN_ID                          : 'refreshTokenId',
+  DEVICE_ID                                 : 'deviceId',
 }
 
 /**
@@ -49,6 +50,7 @@ class CookieHelper {
       secure                              : NODE_ENV === 'production',
       sameSite                            : 'Strict',
       maxAge                              : maxAge || TimeHelper.OneDay,
+      signed                              : true,
     }
   }
 
@@ -134,7 +136,7 @@ class CookieHelper {
       if( req.cookies.userId && !mongoose.isValidObjectId(req.cookies.userId) )
         throw new CustomErrorHelper( req.t( 'user.id.invalid' ) )
 
-      return req.cookies.userId || null
+      return req.signedCookies.userId || null
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -218,6 +220,22 @@ class CookieHelper {
         throw new CustomErrorHelper( req.t( 'refreshTokenId.invalid' ) )
 
       return req.signedCookies.refreshTokenId || null
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
+  static SetDeviceIdCookie( res, deviceId ) {
+    try {
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.DEVICE_ID, deviceId, TimeHelper.OneMonth )
+    } catch ( error ) {
+      return ResponseHelper.Error( res, error.message )
+    }
+  }
+
+  static GetDeviceIdCookie( req, res ) {
+    try {
+      return req.signedCookies.deviceId || null
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }

@@ -115,13 +115,13 @@ class AuthController {
 
       // Attempt to find the refresh token record
       const refreshTokenRecord              = await RefreshTokenModel.findOne({
-        userId                            : userId,
-        deviceId                          : UserHelper.GetDeviceId( req, res ),
-        token                             : refreshToken,
+        userId                              : userId,
+        deviceId                            : UserHelper.GetDeviceId( req, res ),
+        token                               : refreshToken,
       })
 
       // If the refresh token record was found
-      if(refreshTokenRecord)
+      if( refreshTokenRecord )
         await TokenHelper.RevokeRefreshToken( req, res, next )
 
       // Clear all the session variables
@@ -129,6 +129,7 @@ class AuthController {
       delete req.session.userId
       delete req.session.accessToken
       delete req.session.refreshToken
+      delete req.session.refreshTokenId
 
       // Clear all the cookies
       CookieHelper.ClearCookie( res, CookieNames.USER_ID )
@@ -253,6 +254,9 @@ class AuthController {
       // If the refresh token record was not found
       if( !refreshTokenRecord )
         throw new CustomErrorHelper( req.t('refreshTokenRecord.notFound') )
+
+      // Revoke the targeted refresh token
+      await TokenHelper.RevokeRefreshToken( req, res, refreshTokenRecord.deviceId )
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('refreshTokenRecord.revoked') )

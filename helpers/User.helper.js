@@ -3,8 +3,9 @@ import requestIp from 'request-ip'
 
 import UserModel from '../models/User.model.js'
 
-import CookieHelper from './Cookie.helper.js'
+import CookieHelper, { CookieNames } from './Cookie.helper.js'
 import ResponseHelper from './Response.helper.js'
+import TimeHelper from './Time.helper.js'
 
 /**
  * @class UserHelper
@@ -115,6 +116,31 @@ class UserHelper {
     }
   }
 
+  static GenerateDeviceId( req, res, uid ) {
+
+    // Get the user's id, from either parameter, or req, session, or cookie
+    const userId                            = uid || this.GetUserId( req, res )
+
+    // Get the user's ip address
+    const ipAddress                         = this.GetIpAddress( req, res )
+
+    // Get the user agent
+    const userAgent                         = this.GetUserAgent( req, res )
+
+    // Generate the device id
+    const data                              = `${ userId }:${ ipAddress }:${ userAgent }`
+    const hash                              = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
+
+    // Store the device id in a cookie
+    CookieHelper.SetDeviceIdCookie( res, hash )
+
+    // Store the device id in req, and session
+    req.deviceId                            = req.session.deviceId                        = hash
+
+    // Return the hashed device id
+    return hash
+  }
+
   /**
    * @method UserHelper.GetDeviceId
    * @description Get the user's device id
@@ -125,15 +151,8 @@ class UserHelper {
   static GetDeviceId( req, res ) {
     try {
 
-      const userId                          = this.GetUserId( req, res )
-      const ipAddress                       = this.GetIpAddress( req, res )
-      const userAgent                       = this.GetUserAgent( req, res )
-
-      const data                            = `${ userId }|${ ipAddress }|${ userAgent }`
-
-      const fingerprint                     = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
-
-      return fingerprint
+      // Get the device id
+      return req.deviceId || req.session.deviceId || CookieHelper.GetDeviceIdCookie( req, res )
 
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )

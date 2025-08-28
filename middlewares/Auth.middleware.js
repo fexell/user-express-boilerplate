@@ -86,19 +86,13 @@ class AuthMiddleware {
         // If the device id from the refresh token record does not match the device id, logout the user
         else if(
           !UserHelper.GetDeviceId( req, res ) ||
-          UserHelper.GetDeviceId( req, res ).length !== 32 ||
+          UserHelper.GetDeviceId( req, res ).length !== 64 ||
           refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res )
         ) {
-
-          // Revoke the current refresh token
-          await TokenHelper.RevokeRefreshToken( req, res, next )
 
           // Logout the user (force logout since the device id does not match the one in the refresh token record)
           return AuthController.Logout( req, res, next, true )
         }
-
-        // Revoke the current refresh token
-        await TokenHelper.RevokeRefreshToken( req, res, next )
 
         // Generate new JWT ID
         const jwtId                         = uuidv4()
@@ -107,7 +101,7 @@ class AuthMiddleware {
         const newRefreshToken               = TokenHelper.SignRefreshToken( userId )
 
         // Generate a new refresh token record
-        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, newRefreshToken )
+        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, newRefreshToken, userId )
 
         // Generate a new access token
         const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )

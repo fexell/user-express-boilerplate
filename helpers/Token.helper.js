@@ -199,6 +199,8 @@ class TokenHelper {
       // Create the Access Token cookie
       CookieHelper.SetAccessTokenCookie( res, accessToken )
 
+      req.accessToken                       = req.session.accessToken                     = accessToken
+
       // Return the signed Access Token
       return this.SignAccessToken( userId, jwtId || req.session.jwtId )
 
@@ -269,10 +271,13 @@ class TokenHelper {
   static async GenerateNewRefreshToken( req, res, token, userId ) {
     try {
 
+      // Revoke the old Refresh Token
+      await this.RevokeRefreshToken( req, res, UserHelper.GetDeviceId( req, res ) )
+
       // Generate a new Refresh Token record
       const newRefreshTokenRecord           = new RefreshTokenModel({
         userId                              : userId || UserHelper.GetUserId( req, res ),
-        deviceId                            : UserHelper.GetDeviceId( req, res ),
+        deviceId                            : UserHelper.GenerateDeviceId( req, res, userId ),
         ipAddress                           : UserHelper.GetIpAddress( req, res ),
         userAgent                           : UserHelper.GetUserAgent( req, res ),
         token                               : token,
@@ -284,6 +289,9 @@ class TokenHelper {
       // Create the Refresh Token cookie
       CookieHelper.SetRefreshTokenCookie( res, newRefreshTokenRecord.token )
       CookieHelper.SetRefreshTokenIdCookie( res, newRefreshTokenRecord._id )
+
+      req.refreshToken                      = req.session.refreshToken                    = newRefreshTokenRecord.token
+      req.refreshTokenId                    = req.session.refreshTokenId                  = newRefreshTokenRecord._id
 
       // Return the Refresh Token record
       return newRefreshTokenRecord
@@ -367,32 +375,47 @@ class TokenHelper {
    * @param {Boolean} many 
    * @returns 
    */
-  static async RevokeRefreshToken( req, res, next, isMany = false ) {
+  static async RevokeRefreshToken( req, res, targetDeviceId ) {
     try {
 
-      // First, get the refresh token id
-      const refreshTokenId                  = this.GetRefreshTokenId( req, res )
+      // Get the device id
+      const deviceId                        = UserHelper.GetDeviceId( req, res )
 
-      // Get the refresh token record, based on refresh token id, device id and refresh token
-      const refreshTokenRecord              = await RefreshTokenModel.findOne({ _id: refreshTokenId, deviceId: UserHelper.GetDeviceId( req, res ), token: this.GetRefreshToken( req, res ) })
+      // Get the refresh token records either by current device id or target device id
+      const refreshTokens                   = !targetDeviceId
+        ? await RefreshTokenModel.find({ deviceId: deviceId })
+        : await RefreshTokenModel.find({ deviceId: targetDeviceId })
 
-      // Attempt to decode the refresh token
-      const decodedRefreshToken             = this.ValidateAndDecodeToken( req, refreshTokenRecord.token, 'refresh' )
+      // Create an array for the refresh token blacklist
+      const blacklistRecords                = []
 
-      // Create a new token blacklist record, with the refresh token, device id and the time of expiration
-      const newTokenBlacklistRecord         = new TokenBlacklistModel({
-        deviceId                            : refreshTokenRecord.deviceId,
-        token                               : refreshTokenRecord.token,
-        expireAt                            : decodedRefreshToken.exp * 1000,
-      })
+      // Create an array for the refresh token ids to delete
+      const tokenIdsToDelete                = []
 
-      // Save the token blacklist record
-      await newTokenBlacklistRecord.save()
+      for( const tokenRecord of refreshTokens ) {
 
-      // Delete the refresh token record
-      return refreshTokenRecord.deleteOne()
-        .then(() => ({ success: true }))
-        .catch(( error ) => ({ success: false, error }))
+        // Decode the refresh token
+        const decoded                       = this.ValidateAndDecodeToken( req, tokenRecord.token, 'refresh' )
+
+        // If the refresh token is not valid, continue
+        if( !decoded )
+          continue
+
+        // Add the refresh token record to the blacklist
+        blacklistRecords.push({
+          deviceId                          : tokenRecord.deviceId,
+          token                             : tokenRecord.token,
+          expireAt                          : decoded.exp * 1000,
+        })
+
+        // Add the refresh token id to the token ids to delete
+        tokenIdsToDelete.push( tokenRecord._id )
+      }
+
+      await TokenBlacklistModel.insertMany( blacklistRecords )
+      await RefreshTokenModel.deleteMany({ _id: { $in: tokenIdsToDelete } })
+
+      return { success: true }
       
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
