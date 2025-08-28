@@ -25,8 +25,8 @@ class ResponseHelper {
       return res
         .status( status )
         .json({
-          ...(message && { message }),
-          ...(data && { [ key ]: data }),
+          ...( message && { message } ),
+          ...( data && { [ key ]: data } ),
         })
 
     } catch ( error ) {
@@ -47,12 +47,23 @@ class ResponseHelper {
 
       // Returns an error response, with a message and status
       return res
-        .status(status)
+        .status( status )
         .json({ message })
 
     } catch ( error ) {
       return console.error( error )
     }
+  }
+
+  /**
+   * @method ResponseHelper.CatchError
+   * @description Error Response for methods that doesn't use next( error )
+   * @param {Response} res 
+   * @param {Object} error 
+   * @returns 
+   */
+  static CatchError( res, error ) {
+    return this.Error( res, error.message, error.statusCode || error.status )
   }
 }
 

@@ -110,19 +110,10 @@ class AuthController {
       const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
 
       // If the user id and refresh token id are not found
-      if(!userId && !refreshToken)
+      if( !userId && !refreshToken )
         throw new CustomErrorHelper( req.t('user.alreadyLoggedOut') )
 
-      // Attempt to find the refresh token record
-      const refreshTokenRecord              = await RefreshTokenModel.findOne({
-        userId                              : userId,
-        deviceId                            : UserHelper.GetDeviceId( req, res ),
-        token                               : refreshToken,
-      })
-
-      // If the refresh token record was found
-      if( refreshTokenRecord )
-        await TokenHelper.RevokeRefreshToken( req, res, next )
+      await TokenHelper.RevokeRefreshToken( req, res )
 
       // Clear all the session variables
       delete req.session.jwtId
@@ -135,6 +126,8 @@ class AuthController {
       CookieHelper.ClearCookie( res, CookieNames.USER_ID )
       CookieHelper.ClearCookie( res, CookieNames.ACCESS_TOKEN, true )
       CookieHelper.ClearCookie( res, CookieNames.REFRESH_TOKEN, true )
+      CookieHelper.ClearCookie( res, CookieNames.REFRESH_TOKEN_ID, true )
+      CookieHelper.ClearCookie( res, CookieNames.DEVICE_ID, true )
 
       if( typeof forced === 'string' )
         return ResponseHelper.Success( res, req.t( forced ) )

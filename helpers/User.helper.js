@@ -14,6 +14,7 @@ import TimeHelper from './Time.helper.js'
  * @method UserHelper.GetUserId Get the user's id from req, session or cookie
  * @method UserHelper.GetIpAddress Get the user's ip address
  * @method UserHelper.GetUserAgent Get the user's user agent (browser information)
+ * @method UserHelper.GenerateDeviceId Generates unique device id
  * @method UserHelper.GetDeviceId Get the user's device id
  * @method UserHelper.GetUserById Get the user's record from MongoDB by id
  * @method UserHelper.GetUserByEmail Get the user's record from MongoDB by email
@@ -34,7 +35,7 @@ class UserHelper {
       return req.userId || req.session.userId || CookieHelper.GetUserIdCookie( req, res )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -55,7 +56,7 @@ class UserHelper {
       return user?.email
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -76,7 +77,7 @@ class UserHelper {
       return user?.username
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -94,7 +95,7 @@ class UserHelper {
       return requestIp.getClientIp( req )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -112,33 +113,45 @@ class UserHelper {
       return req.useragent.source || req.headers[ 'User-Agent' ]
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
+  /**
+   * @method UserHelper.GenerateDeviceId
+   * @description Generates unique device id
+   * @param {Request} req 
+   * @param {Reponse} res 
+   * @param {String} uid 
+   * @returns 
+   */
   static GenerateDeviceId( req, res, uid ) {
+    try {
+      // Get the user's id, from either parameter, or req, session, or cookie
+      const userId                            = uid || this.GetUserId( req, res )
 
-    // Get the user's id, from either parameter, or req, session, or cookie
-    const userId                            = uid || this.GetUserId( req, res )
+      // Get the user's ip address
+      const ipAddress                         = this.GetIpAddress( req, res )
 
-    // Get the user's ip address
-    const ipAddress                         = this.GetIpAddress( req, res )
+      // Get the user agent
+      const userAgent                         = this.GetUserAgent( req, res )
 
-    // Get the user agent
-    const userAgent                         = this.GetUserAgent( req, res )
+      // Generate the device id
+      const data                              = `${ userId }:${ ipAddress }:${ userAgent }`
+      const hash                              = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
 
-    // Generate the device id
-    const data                              = `${ userId }:${ ipAddress }:${ userAgent }`
-    const hash                              = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
+      // Store the device id in a cookie
+      CookieHelper.SetDeviceIdCookie( res, hash )
 
-    // Store the device id in a cookie
-    CookieHelper.SetDeviceIdCookie( res, hash )
+      // Store the device id in req, and session
+      req.deviceId                            = req.session.deviceId                        = hash
 
-    // Store the device id in req, and session
-    req.deviceId                            = req.session.deviceId                        = hash
+      // Return the hashed device id
+      return hash
 
-    // Return the hashed device id
-    return hash
+    } catch ( error ) {
+      return ResponseHelper.CatchError( res, error )
+    }
   }
 
   /**
@@ -155,7 +168,7 @@ class UserHelper {
       return req.deviceId || req.session.deviceId || CookieHelper.GetDeviceIdCookie( req, res )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -180,7 +193,7 @@ class UserHelper {
           : await UserModel.findById( userId || this.GetUserId( req, res ) ).select( '+password' ).lean()
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -205,7 +218,7 @@ class UserHelper {
           : await UserModel.findOne( { email: email || await this.GetUserEmail( req, res ) } ).select( '+password' ).lean()
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -226,7 +239,7 @@ class UserHelper {
         : await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } ).lean()
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 }

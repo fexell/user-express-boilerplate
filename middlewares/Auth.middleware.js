@@ -70,6 +70,9 @@ class AuthMiddleware {
         if( decodedAccessToken.userId.toString() !== userId.toString() )
           return AuthController.Logout( req, res, next, true )
 
+        // Update the access token in req object and session
+        req.accessToken                     = req.session.accessToken                     = accessToken
+
         // Continue to the next middleware or route
         return next()
 
@@ -132,27 +135,34 @@ class AuthMiddleware {
   static async DataCheck( req, res, next ) {
     try {
 
-      // Get the user id, access token and refresh token
+      // Get the user id, device id, access token, refresh token and refresh token id
       const userId                          = UserHelper.GetUserId( req, res )
+      const deviceId                        = UserHelper.GetDeviceId( req, res )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
-      const RefreshToken                    = TokenHelper.GetRefreshTokenId( req, res )
+      const refreshToken                    = TokenHelper.GetRefreshTokenId( req, res )
+      const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
 
-      // Create a buffer from the user id, access token and refresh token
+      // Create a buffer from the user id, access token, refresh token and refresh token id
       const userIdBuffer                    = Buffer.from( userId )
+      const deviceIdBuffer                  = Buffer.from( deviceId )
       const accessTokenBuffer               = Buffer.from( accessToken )
-      const refreshTokenBuffer              = Buffer.from( RefreshToken )
+      const refreshTokenBuffer              = Buffer.from( refreshToken )
+      const refreshTokenIdBuffer            = Buffer.from( refreshTokenId )
 
-      // Create a buffer from the session user id, access token and refresh token
+      // Create a buffer from the session user id, device id, access token, refresh token and refresh token id
       const sessionUserIdBuffer             = Buffer.from( req.session.userId )
+      const sessionDeviceIdBuffer           = Buffer.from( req.session.deviceId )
       const sessionAccessTokenBuffer        = Buffer.from( req.session.accessToken )
       const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshTokenId )
+      const sessionRefreshTokenIdBuffer     = Buffer.from( req.session.refreshTokenId )
 
-      // If the user id, access token and refresh token do not match the session user id,
-      // access token and refresh token, logout the user
+      // If the stored user data does not match the session user data, logout the user
       if(
         !crypto.timingSafeEqual( userIdBuffer, sessionUserIdBuffer ) ||
+        !crypto.timingSafeEqual( deviceIdBuffer, sessionDeviceIdBuffer ) ||
         !crypto.timingSafeEqual( accessTokenBuffer, sessionAccessTokenBuffer ) ||
-        !crypto.timingSafeEqual( refreshTokenBuffer, sessionRefreshTokenBuffer )
+        !crypto.timingSafeEqual( refreshTokenBuffer, sessionRefreshTokenBuffer ) ||
+        !crypto.timingSafeEqual( refreshTokenIdBuffer, sessionRefreshTokenIdBuffer )
       )
         return AuthController.Logout( req, res, next, true )
 
@@ -362,6 +372,7 @@ class AuthMiddleware {
   static async RefreshTokenRevoked( req, res, next ) {
     try {
 
+      // Attempt to find the refresh token in the token-blacklist
       const revokedRefreshToken             = await TokenBlacklistModel.findOne({ token: TokenHelper.GetRefreshToken( req, res ) })
 
       // If the refresh token is revoked

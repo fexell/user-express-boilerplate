@@ -81,7 +81,7 @@ class TokenHelper {
       return jwt.sign( payload, { key: PRIVATE_KEY, passphrase: JWT_SECRET }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -99,7 +99,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -116,7 +116,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -135,7 +135,7 @@ class TokenHelper {
       return jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -155,7 +155,7 @@ class TokenHelper {
       return this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -173,7 +173,7 @@ class TokenHelper {
       return req.accessToken || req.session.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
       
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -205,7 +205,7 @@ class TokenHelper {
       return this.SignAccessToken( userId, jwtId || req.session.jwtId )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -224,7 +224,7 @@ class TokenHelper {
       return this.VerifyToken( token, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -235,7 +235,7 @@ class TokenHelper {
       return req.refreshToken || req.session.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -253,7 +253,7 @@ class TokenHelper {
       return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -286,7 +286,7 @@ class TokenHelper {
       // Save the Refresh Token record
       await newRefreshTokenRecord.save()
 
-      // Create the Refresh Token cookie
+      // Create the Refresh Token cookies
       CookieHelper.SetRefreshTokenCookie( res, newRefreshTokenRecord.token )
       CookieHelper.SetRefreshTokenIdCookie( res, newRefreshTokenRecord._id )
 
@@ -297,7 +297,7 @@ class TokenHelper {
       return newRefreshTokenRecord
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -330,7 +330,7 @@ class TokenHelper {
       return refreshTokenRecord
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -355,14 +355,14 @@ class TokenHelper {
 
       // Attempt to find the refresh token records
       const refreshTokenRecords             = !isLean
-        ? await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken })
-        : await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken }).lean()
+        ? await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ) })
+        : await RefreshTokenModel.find({ userId: userId, deviceId: UserHelper.GetDeviceId( req, res ) }).lean()
 
       // Return the refresh token records
       return refreshTokenRecords
 
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -372,7 +372,7 @@ class TokenHelper {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @param {Boolean} many 
+   * @param {String} targetDeviceId The target device id to revoke
    * @returns 
    */
   static async RevokeRefreshToken( req, res, targetDeviceId ) {
@@ -386,10 +386,10 @@ class TokenHelper {
         ? await RefreshTokenModel.find({ deviceId: deviceId })
         : await RefreshTokenModel.find({ deviceId: targetDeviceId })
 
-      // Create an array for the refresh token blacklist
+      // Initialize an array for the refresh token blacklist
       const blacklistRecords                = []
 
-      // Create an array for the refresh token ids to delete
+      // Initialize an array for the refresh token ids to delete
       const tokenIdsToDelete                = []
 
       for( const tokenRecord of refreshTokens ) {
@@ -412,13 +412,21 @@ class TokenHelper {
         tokenIdsToDelete.push( tokenRecord._id )
       }
 
+      // First, insert the refresh token to the token-blacklist
       await TokenBlacklistModel.insertMany( blacklistRecords )
+
+      // Then, delete the refresh tokens
       await RefreshTokenModel.deleteMany({ _id: { $in: tokenIdsToDelete } })
 
-      return { success: true }
+      // Return the amount of revoked tokens, and the revoked tokens id
+      return {
+        success: true,
+        revokedTokens: tokenIdsToDelete.length,
+        revokedTokenIds: tokenIdsToDelete.map( token => token.toString() ),
+      }
       
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
