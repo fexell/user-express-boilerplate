@@ -21,7 +21,7 @@ import UserHelper from './User.helper.js'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '3m', // 3 minutes
+  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '15m', // 3 minutes
   REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
@@ -272,7 +272,7 @@ class TokenHelper {
     try {
 
       // Revoke the old Refresh Token
-      await this.RevokeRefreshToken( req, res, UserHelper.GetDeviceId( req, res ) )
+      await this.RevokeRefreshToken( req, res, 'New refresh token generated', UserHelper.GetDeviceId( req, res ) )
 
       // Generate a new Refresh Token record
       const newRefreshTokenRecord           = new RefreshTokenModel({
@@ -375,7 +375,7 @@ class TokenHelper {
    * @param {String} targetDeviceId The target device id to revoke
    * @returns 
    */
-  static async RevokeRefreshToken( req, res, targetDeviceId ) {
+  static async RevokeRefreshToken( req, res, reason, targetDeviceId ) {
     try {
 
       // Get the device id
@@ -403,9 +403,13 @@ class TokenHelper {
 
         // Add the refresh token record to the blacklist
         blacklistRecords.push({
+          userId                            : tokenRecord.userId,
           deviceId                          : tokenRecord.deviceId,
           token                             : tokenRecord.token,
-          expireAt                          : decoded.exp * 1000,
+          ipAddress                         : tokenRecord.ipAddress,
+          reason                            : reason,
+          expiresAt                         : decoded.exp * 1000,
+          meta                              : req.useragent,
         })
 
         // Add the refresh token id to the token ids to delete

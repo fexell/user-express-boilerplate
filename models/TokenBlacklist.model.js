@@ -1,6 +1,10 @@
 import mongoose, { Schema } from 'mongoose'
 
 const TokenBlacklistSchema                  = new Schema({
+  userId                                    : {
+    type                                    : Schema.Types.ObjectId,
+    required                                : true,
+  },
   deviceId                                  : {
     type                                    : String,
     required                                : true,
@@ -9,12 +13,25 @@ const TokenBlacklistSchema                  = new Schema({
     type                                    : String,
     required                                : true,
   },
+  ipAddress                                 : {
+    type                                    : String,
+    required                                : true,
+  },
+  reason                                    : {
+    type                                    : String,
+    required                                : true,
+    default                                 : 'unknown',
+  },
   revokedAt                                 : {
     type                                    : Date,
     default                                 : Date.now,
   },
-  expireAt                                  : {
+  expiresAt                                 : {
     type                                    : Date,
+    expires                                 : 0,
+  },
+  meta                                      : {
+    type                                    : Object || JSON,
   },
 }, {
   timestamps                                : true,

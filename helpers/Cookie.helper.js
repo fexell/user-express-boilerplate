@@ -76,10 +76,10 @@ class CookieHelper {
    * 
    * @method CookieHelper.SetCookie
    * @description Set a "normal" cookie
-   * @param {*} res 
-   * @param {*} name 
-   * @param {*} value 
-   * @param {*} maxAge 
+   * @param {Response} res 
+   * @param {String} name 
+   * @param {String} value 
+   * @param {Number} maxAge 
    * @returns {Object}
    */
   static SetCookie( res, name, value, maxAge ) {
@@ -93,10 +93,10 @@ class CookieHelper {
   /**
    * @method CookieHelper.SetSignedHttpOnlyCookie
    * @description Set a "signed http only" cookie
-   * @param {*} res 
-   * @param {*} name 
-   * @param {*} value 
-   * @param {*} maxAge 
+   * @param {Response} res 
+   * @param {String} name 
+   * @param {String} value 
+   * @param {Number} maxAge 
    * @returns {Object}
    */
   static SetSignedHttpOnlyCookie( res, name, value, maxAge ) {
@@ -112,8 +112,8 @@ class CookieHelper {
    * 
    * @method CookieHelper.SetUserIdCookie
    * @description Set User Id Cookie, accessible from the client
-   * @param {*} res 
-   * @param {*} userId 
+   * @param {Response} res 
+   * @param {Mongoose.ObjectId} userId 
    * @returns {Object}
    */
   static SetUserIdCookie( res, userId ) {
@@ -127,8 +127,8 @@ class CookieHelper {
   /**
    * @method CookieHelper.GetUserIdCookie
    * @description Get User Id Cookie
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns 
    */
   static GetUserIdCookie( req, res ) {
@@ -147,13 +147,13 @@ class CookieHelper {
    * 
    * @method CookieHelper.SetAccessTokenCookie
    * @description Set Access Token Cookie
-   * @param {*} res 
-   * @param {*} accessToken 
+   * @param {Response} res 
+   * @param {String} accessToken 
    * @returns 
    */
   static SetAccessTokenCookie( res, accessToken ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.ThreeMinutes )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FiteenMinutes )
     } catch ( error ) {
       return ResponseHelper.Error( res, error.message )
     }
@@ -162,8 +162,8 @@ class CookieHelper {
   /**
    * @method CookieHelper.GetAccessTokenCookie
    * @description Get Access Token from the signed cookie
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns 
    */
   static GetAccessTokenCookie( req, res ) {
@@ -179,8 +179,8 @@ class CookieHelper {
    * 
    * @method CookieHelper.SetRefreshTokenIdCookie
    * @description Set Refresh Token Id Cookie
-   * @param {*} res 
-   * @param {*} refreshTokenId 
+   * @param {Response} res 
+   * @param {Mongoose.ObjectId} refreshTokenId 
    * @returns 
    */
   static SetRefreshTokenCookie( res, refreshToken ) {
@@ -191,6 +191,13 @@ class CookieHelper {
     }
   }
 
+  /**
+   * @method CookieHelper.GetRefreshTokenCookie
+   * @description Get Refresh Token from the signed cookie
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns 
+   */
   static GetRefreshTokenCookie( req, res ) {
     try {
       return req.signedCookies.refreshToken || null
@@ -199,6 +206,13 @@ class CookieHelper {
     }
   }
 
+  /**
+   * @method CookieHelper.SetRefreshTokenIdCookie
+   * @description Set Refresh Token Id Cookie
+   * @param {Response} res 
+   * @param {Mongoose.ObjectId} refreshTokenId 
+   * @returns 
+   */
   static SetRefreshTokenIdCookie( res, refreshTokenId ) {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN_ID, refreshTokenId, TimeHelper.OneMonth )
@@ -210,8 +224,8 @@ class CookieHelper {
   /**
    * @method CookieHelper.GetRefreshTokenIdCookie
    * @description Get Refresh Token Id from the signed cookie
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns 
    */
   static GetRefreshTokenIdCookie( req, res ) {
@@ -225,6 +239,13 @@ class CookieHelper {
     }
   }
 
+  /**
+   * @method CookieHelper.SetDeviceIdCookie
+   * @description Set Device Id Cookie
+   * @param {Response} res 
+   * @param {String} deviceId 
+   * @returns 
+   */
   static SetDeviceIdCookie( res, deviceId ) {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.DEVICE_ID, deviceId, TimeHelper.OneMonth )
@@ -233,6 +254,13 @@ class CookieHelper {
     }
   }
 
+  /**
+   * @method CookieHelper.GetDeviceIdCookie
+   * @description Get Device Id from the signed cookie
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns 
+   */
   static GetDeviceIdCookie( req, res ) {
     try {
       return req.signedCookies.deviceId || null
@@ -244,9 +272,9 @@ class CookieHelper {
   /**
    * @method CookieHelper.ClearCookie
    * @description Clear a cookie
-   * @param {*} res 
-   * @param {*} name 
-   * @param {*} signed 
+   * @param {Response} res 
+   * @param {String} name 
+   * @param {Boolean} signed 
    * @returns 
    */
   static ClearCookie( res, name, signed = false ) {

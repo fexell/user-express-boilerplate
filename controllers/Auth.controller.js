@@ -113,7 +113,7 @@ class AuthController {
       if( !userId && !refreshToken )
         throw new CustomErrorHelper( req.t('user.alreadyLoggedOut') )
 
-      await TokenHelper.RevokeRefreshToken( req, res )
+      await TokenHelper.RevokeRefreshToken( req, res, 'User logged out' )
 
       // Clear all the session variables
       delete req.session.jwtId
@@ -249,7 +249,7 @@ class AuthController {
         throw new CustomErrorHelper( req.t('refreshTokenRecord.notFound') )
 
       // Revoke the targeted refresh token
-      await TokenHelper.RevokeRefreshToken( req, res, refreshTokenRecord.deviceId )
+      await TokenHelper.RevokeRefreshToken( req, res, 'Refresh token revoked by user', refreshTokenRecord.deviceId )
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('refreshTokenRecord.revoked') )
