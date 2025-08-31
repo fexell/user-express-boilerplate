@@ -10,6 +10,7 @@ import UserModel from '../models/User.model.js'
 
 import CookieHelper from '../helpers/Cookie.helper.js'
 import CustomErrorHelper from '../helpers/Error.helper.js'
+import SessionHelper from '../helpers/Session.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 import TokenHelper from '../helpers/Token.helper.js'
 
@@ -100,11 +101,8 @@ class AuthMiddleware {
         // Generate new JWT ID
         const jwtId                         = uuidv4()
 
-        // Sign a new refresh token
-        const newRefreshToken               = TokenHelper.SignRefreshToken( userId )
-
         // Generate a new refresh token record
-        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, newRefreshToken, userId )
+        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, 'Authenticate' )
 
         // Generate a new access token
         const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
@@ -377,7 +375,7 @@ class AuthMiddleware {
 
       // If the refresh token is revoked
       if( revokedRefreshToken )
-        throw new CustomErrorHelper( req.t('refreshToken.revoked') )
+        return AuthController.Logout( req, res, next, 'refreshToken.revoked' )
 
       // Continue to the next middleware or route
       return next()

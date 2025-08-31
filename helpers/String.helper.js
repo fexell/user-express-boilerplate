@@ -4,14 +4,14 @@
  * @class StringHelper
  * @classdesc Contains all methods related to strings (and string manipulations)
  * 
- * @method StringHelper.Capitalize - Capitalize a string (and lowercase the rest)
+ * @method StringHelper.Capitalize Capitalize a string (and lowercase the rest)
  */
 class StringHelper {
 
   /**
    * @method StringHelper.Capitalize
    * @description Capitalize a string (and lowercase the rest)
-   * @param {*} string 
+   * @param {String} string 
    * @returns {String}
    */
   static Capitalize( string ) {

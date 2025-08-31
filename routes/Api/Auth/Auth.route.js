@@ -62,6 +62,14 @@ AuthRouter.get( '/find/units', [
   AuthMiddleware.AccountInactive,
 ], AuthController.UnitsLoggedInOn )
 
+AuthRouter.put( '/unit/revoke/all', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
+  AuthMiddleware.RefreshTokenRevoked,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountInactive,
+], AuthController.RevokeAllRefreshTokens )
+
 AuthRouter.put( '/unit/revoke/:tokenId', [
   AuthMiddleware.Authenticate,
   AuthMiddleware.DataCheck,
@@ -69,6 +77,14 @@ AuthRouter.put( '/unit/revoke/:tokenId', [
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
 ], AuthController.RevokeRefreshToken )
+
+AuthRouter.put( '/tokens/refresh', [
+  AuthMiddleware.Authenticate,
+  AuthMiddleware.DataCheck,
+  AuthMiddleware.RefreshTokenRevoked,
+  AuthMiddleware.EmailVerified,
+  AuthMiddleware.AccountInactive,
+], AuthController.RefreshTokens )
 
 export {
   AuthRouter as default,

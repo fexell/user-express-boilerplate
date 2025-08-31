@@ -7,6 +7,7 @@ import CookieHelper, { CookieNames } from '../helpers/Cookie.helper.js'
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import PasswordHelper from '../helpers/Password.helper.js'
 import ResponseHelper from '../helpers/Response.helper.js'
+import SessionHelper from '../helpers/Session.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 import TokenHelper from '../helpers/Token.helper.js'
 
@@ -14,11 +15,11 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @class AuthController
  * @classdesc Contains all controller methods related to authentication
  * 
- * @method AuthController.Login - Login method
- * @method AuthController.Logout - Logout method
- * @method AuthController.VerifyEmail - Verify email method
- * @method AuthController.UnitsLoggedInOn - Returns the units the user is currently logged in on
- * @method AuthController.RevokeRefreshToken - The controller method handling revoking a refresh token
+ * @method AuthController.Login Login method
+ * @method AuthController.Logout Logout method
+ * @method AuthController.VerifyEmail Verify email method
+ * @method AuthController.UnitsLoggedInOn Returns the units the user is currently logged in on
+ * @method AuthController.RevokeRefreshToken The controller method handling revoking a refresh token
  */
 class AuthController {
 
@@ -71,7 +72,7 @@ class AuthController {
       const newRefreshTokenRecord           = await TokenHelper.GenerateNewRefreshToken(
         req,
         res,
-        refreshToken,
+        'Login',
         user._id,
       )
 
@@ -116,18 +117,10 @@ class AuthController {
       await TokenHelper.RevokeRefreshToken( req, res, 'User logged out' )
 
       // Clear all the session variables
-      delete req.session.jwtId
-      delete req.session.userId
-      delete req.session.accessToken
-      delete req.session.refreshToken
-      delete req.session.refreshTokenId
+      SessionHelper.ClearAllSessions( req )
 
       // Clear all the cookies
-      CookieHelper.ClearCookie( res, CookieNames.USER_ID )
-      CookieHelper.ClearCookie( res, CookieNames.ACCESS_TOKEN, true )
-      CookieHelper.ClearCookie( res, CookieNames.REFRESH_TOKEN, true )
-      CookieHelper.ClearCookie( res, CookieNames.REFRESH_TOKEN_ID, true )
-      CookieHelper.ClearCookie( res, CookieNames.DEVICE_ID, true )
+      CookieHelper.ClearAllCookies( res )
 
       if( typeof forced === 'string' )
         return ResponseHelper.Success( res, req.t( forced ) )
@@ -259,6 +252,17 @@ class AuthController {
     }
   }
 
+  static async RevokeAllRefreshTokens( req, res, next ) {
+    try {
+      await TokenHelper.RevokeRefreshToken( req, res, 'All refresh tokens revoked', null, UserHelper.GetUserId( req, res ) )
+
+      return ResponseHelper.Success( res, req.t('refreshTokens.revoked') )
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
   /**
    * @method AuthController.UpdatePassword
    * @description The controller method handling updating a user's password
@@ -312,6 +316,21 @@ class AuthController {
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('password.updated') )
+
+    } catch ( error ) {
+      return next( error )
+    }
+  }
+
+  static async RefreshTokens( req, res, next ) {
+    try {
+      const jwtId                           = uuidv4()
+      const userId                          = UserHelper.GetUserId( req, res )
+
+      await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
+      await TokenHelper.GenerateNewRefreshToken( req, res, 'RefreshTokens' )
+
+      return ResponseHelper.Success( res, req.t('tokens.refreshed') )
 
     } catch ( error ) {
       return next( error )

@@ -6,6 +6,7 @@ import UserModel from '../models/User.model.js'
 import CookieHelper, { CookieNames } from './Cookie.helper.js'
 import ResponseHelper from './Response.helper.js'
 import TimeHelper from './Time.helper.js'
+import { Mongoose } from 'mongoose'
 
 /**
  * @class UserHelper
@@ -122,7 +123,7 @@ class UserHelper {
    * @description Generates unique device id
    * @param {Request} req 
    * @param {Reponse} res 
-   * @param {String} uid 
+   * @param {Mongoose.ObjectId} uid 
    * @returns 
    */
   static GenerateDeviceId( req, res, uid ) {

@@ -86,7 +86,7 @@ class CookieHelper {
     try {
       return res.cookie( name, value, this.CookieOptions( maxAge ) )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -103,7 +103,7 @@ class CookieHelper {
     try {
       return res.cookie( name, value, this.SignedHttpOnlyCookieOptions( maxAge ) )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -120,7 +120,7 @@ class CookieHelper {
     try {
       return this.SetCookie( res, CookieNames.USER_ID, userId, TimeHelper.OneMonth )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -138,7 +138,7 @@ class CookieHelper {
 
       return req.signedCookies.userId || null
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -155,7 +155,7 @@ class CookieHelper {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FiteenMinutes )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -170,7 +170,7 @@ class CookieHelper {
     try {
       return req.signedCookies.accessToken || null
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -187,7 +187,7 @@ class CookieHelper {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN, refreshToken, TimeHelper.OneMonth )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -202,7 +202,7 @@ class CookieHelper {
     try {
       return req.signedCookies.refreshToken || null
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -217,7 +217,7 @@ class CookieHelper {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.REFRESH_TOKEN_ID, refreshTokenId, TimeHelper.OneMonth )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -235,7 +235,7 @@ class CookieHelper {
 
       return req.signedCookies.refreshTokenId || null
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -250,7 +250,7 @@ class CookieHelper {
     try {
       return this.SetSignedHttpOnlyCookie( res, CookieNames.DEVICE_ID, deviceId, TimeHelper.OneMonth )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -265,7 +265,7 @@ class CookieHelper {
     try {
       return req.signedCookies.deviceId || null
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
     }
   }
 
@@ -283,7 +283,21 @@ class CookieHelper {
 
       return res.clearCookie( name, options )
     } catch ( error ) {
-      return ResponseHelper.Error( res, error.message )
+      return ResponseHelper.CatchError( res, error )
+    }
+  }
+
+  static ClearAllCookies( res ) {
+    try {
+
+      this.ClearCookie( res, CookieNames.USER_ID )
+      this.ClearCookie( res, CookieNames.ACCESS_TOKEN, true )
+      this.ClearCookie( res, CookieNames.REFRESH_TOKEN, true )
+      this.ClearCookie( res, CookieNames.REFRESH_TOKEN_ID, true )
+      this.ClearCookie( res, CookieNames.DEVICE_ID, true )
+      
+    } catch ( error ) {
+      return ResponseHelper.CatchError( res, error )
     }
   }
 }
