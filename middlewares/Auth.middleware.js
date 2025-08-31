@@ -137,7 +137,7 @@ class AuthMiddleware {
       const userId                          = UserHelper.GetUserId( req, res )
       const deviceId                        = UserHelper.GetDeviceId( req, res )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
-      const refreshToken                    = TokenHelper.GetRefreshTokenId( req, res )
+      const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
       const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
 
       // Create a buffer from the user id, access token, refresh token and refresh token id
@@ -151,7 +151,7 @@ class AuthMiddleware {
       const sessionUserIdBuffer             = Buffer.from( req.session.userId )
       const sessionDeviceIdBuffer           = Buffer.from( req.session.deviceId )
       const sessionAccessTokenBuffer        = Buffer.from( req.session.accessToken )
-      const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshTokenId )
+      const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshToken )
       const sessionRefreshTokenIdBuffer     = Buffer.from( req.session.refreshTokenId )
 
       // If the stored user data does not match the session user data, logout the user

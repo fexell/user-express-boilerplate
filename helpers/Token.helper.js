@@ -61,8 +61,8 @@ class TokenHelper {
     return {
       issuer                              : 'UserBoilerplate',
       algorithm                           : 'RS256',
-      ...(expiresIn && { expiresIn }),
-      ...(jwtId && { jwtid: jwtId }),
+      ...( expiresIn && { expiresIn } ),
+      ...( jwtId && { jwtid: jwtId } ),
     }
   }
 
