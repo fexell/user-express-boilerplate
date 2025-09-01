@@ -128,7 +128,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async DataCheck( req, res, next ) {
     try {
@@ -178,7 +178,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async ValidateTokens( req, res, next ) {
     try {
@@ -213,7 +213,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async AlreadyLoggedIn( req, res, next ) {
     try {
@@ -241,7 +241,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async AlreadyLoggedOut( req, res, next ) {
     try {
@@ -267,7 +267,7 @@ class AuthMiddleware {
    * @method AuthMiddleware.RoleChecker
    * @description Authorization middleware, checking whether the user has the required role to access the route
    * @param {Array|String} roles 
-   * @returns 
+   * @returns {NextFunction}
    */
   static RoleChecker( roles = [] ) {
     return async ( req, res, next ) => {
@@ -299,7 +299,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async EmailVerified( req, res, next ) {
     try {
@@ -332,7 +332,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async AccountInactive( req, res, next ) {
     try {
@@ -365,7 +365,7 @@ class AuthMiddleware {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns 
+   * @returns {NextFunction}
    */
   static async RefreshTokenRevoked( req, res, next ) {
     try {
