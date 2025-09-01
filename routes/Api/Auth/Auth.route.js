@@ -55,6 +55,7 @@ AuthRouter.put( '/verify/email/:token', [
  * @returns {RefreshTokens[]} The refresh tokens that are _not_ revoked
  */
 AuthRouter.get( '/find/units', [
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
@@ -63,6 +64,7 @@ AuthRouter.get( '/find/units', [
 ], AuthController.UnitsLoggedInOn )
 
 AuthRouter.put( '/unit/revoke/all', [
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
@@ -71,6 +73,7 @@ AuthRouter.put( '/unit/revoke/all', [
 ], AuthController.RevokeAllRefreshTokens )
 
 AuthRouter.put( '/unit/revoke/:tokenId', [
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,
@@ -79,6 +82,7 @@ AuthRouter.put( '/unit/revoke/:tokenId', [
 ], AuthController.RevokeRefreshToken )
 
 AuthRouter.put( '/tokens/refresh', [
+  AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
   AuthMiddleware.DataCheck,
   AuthMiddleware.RefreshTokenRevoked,

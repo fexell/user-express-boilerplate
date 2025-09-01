@@ -31,8 +31,8 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @exports AuthMiddleware
  * 
  * Middlewares should be run in following order:
- * 1. Authenticate
- * 2. ValidateTokens
+ * 1. ValidateTokens
+ * 2. Authenticate
  * 3. DataCheck
  * 4. RefreshTokenRevoked
  * 5. EmailVerified
