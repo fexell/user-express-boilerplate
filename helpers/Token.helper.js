@@ -13,6 +13,7 @@ import CookieHelper from './Cookie.helper.js'
 import CustomErrorHelper from './Error.helper.js'
 import ResponseHelper from './Response.helper.js'
 import UserHelper from './User.helper.js'
+import { mongo } from 'mongoose'
 
 /**
  * @constant ExpirationTime - JWT Expiration Time
@@ -53,7 +54,7 @@ class TokenHelper {
    * @description JWT Options
    * @param {String} expiresIn 
    * @param {String} jwtId 
-   * @returns {Object}
+   * @returns {Object} Options object for the JWT
    */
   static Options( expiresIn, jwtId ) {
 
@@ -72,7 +73,7 @@ class TokenHelper {
    * @param {mongoose.ObjectId} payload 
    * @param {String} expiresIn 
    * @param {String} jwtId 
-   * @returns {String}
+   * @returns {String} The signed JWT
    */
   static Sign( payload, expiresIn, jwtId ) {
     try {
@@ -90,7 +91,7 @@ class TokenHelper {
    * @description Signs the Access Token, with the user's id as the payload
    * @param {mongoose.ObjectId} payload 
    * @param {String} jwtId 
-   * @returns {String}
+   * @returns {String} The signed Access Token
    */
   static SignAccessToken( payload, jwtId ) {
     try {
@@ -107,7 +108,7 @@ class TokenHelper {
    * @method TokenHelper.SignRefreshToken
    * @description Signs the Refresh Token, with the user's id as the payload
    * @param {mongoose.ObjectId} payload 
-   * @returns 
+   * @returns {String} The signed Refresh Token
    */
   static SignRefreshToken( payload ) {
     try {
@@ -126,7 +127,7 @@ class TokenHelper {
    * @param {String} token 
    * @param {String} expiresIn 
    * @param {String} jwtId 
-   * @returns 
+   * @returns {Object} The verified JWT, and its payload
    */
   static VerifyToken( token, expiresIn, jwtId ) {
     try {
@@ -146,7 +147,7 @@ class TokenHelper {
    * @description Verifies the Access Token
    * @param {String} token 
    * @param {String} jwtId 
-   * @returns {Object}
+   * @returns {Object} The verified Access Token
    */
   static VerifyAccessToken( token, jwtId ) {
     try {
@@ -164,7 +165,7 @@ class TokenHelper {
    * @description Gets the Access Token, from either req, session or cookie
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The Access Token
    */
   static GetAccessToken( req, res ) {
     try {
@@ -184,7 +185,7 @@ class TokenHelper {
    * @param {Response} res 
    * @param {mongoose.ObjectId} userId 
    * @param {String} jwtId 
-   * @returns 
+   * @returns {String} The signed Access Token
    */
   static GenerateNewAccessToken( req, res, userId, jwtId ) {
     try {
@@ -215,7 +216,7 @@ class TokenHelper {
    * @method TokenHelper.VerifyRefreshToken
    * @description Verifies the Refresh Token
    * @param {String} token 
-   * @returns 
+   * @returns {Object} The verified/decoded Refresh Token
    */
   static VerifyRefreshToken( token ) {
     try {
@@ -228,6 +229,13 @@ class TokenHelper {
     }
   }
 
+  /**
+   * @method TokenHelper.GetRefreshToken
+   * @description Gets the Refresh Token, from either req, session or cookie
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns {String} The Refresh Token
+   */
   static GetRefreshToken( req, res ) {
     try {
 
@@ -242,9 +250,9 @@ class TokenHelper {
   /**
    * @method TokenHelper.GetRefreshTokenId
    * @description Gets the Refresh Token Id, from either req, session or cookie
-   * @param {*} req 
-   * @param {*} res 
-   * @returns 
+   * @param {Request} req 
+   * @param {Response} res 
+   * @returns {mongoose.ObjectId} The Refresh Token Id
    */
   static GetRefreshTokenId( req, res ) {
     try {
@@ -266,7 +274,7 @@ class TokenHelper {
    * @param {String} ipAddress 
    * @param {String} userAgent 
    * @param {String} token 
-   * @returns 
+   * @returns {String} The signed Refresh Token
    */
   static async GenerateNewRefreshToken( req, res, fromMethod = 'GenerateNewRefreshToken', userId ) {
     try {
@@ -307,7 +315,7 @@ class TokenHelper {
    * @param {Response} res 
    * @param {Boolean} isLean 
    * @param {Boolean} isRevoked 
-   * @returns 
+   * @returns {Mongoose.Document} The Refresh Token Record
    */
   static async GetRefreshTokenRecord( req, res, isLean = false ) {
     try {
@@ -341,7 +349,7 @@ class TokenHelper {
    * @param {Response} res 
    * @param {Boolean} isLean 
    * @param {Boolean} isRevoked 
-   * @returns 
+   * @returns {Mongoose.Document} The Refresh Token Records
    */
   static async GetRefreshTokenRecords( req, res, isLean = false ) {
     try {
@@ -373,7 +381,7 @@ class TokenHelper {
    * @param {Response} res 
    * @param {NextFunction} next 
    * @param {String} targetDeviceId The target device id to revoke
-   * @returns 
+   * @returns {Object} Success response with the revoked refresh token(s)
    */
   static async RevokeRefreshToken( req, res, reason, targetDeviceId = null, userId ) {
     try {

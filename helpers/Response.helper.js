@@ -16,7 +16,7 @@ class ResponseHelper {
    * @param {String} message The success message
    * @param {*} data Data to pass along (e.g. user data)
    * @param {String} key The key name for the data
-   * @returns 
+   * @returns {Response} Express response
    */
   static Success( res, message, status = 200, data, key = 'data' ) {
     try {
@@ -40,7 +40,7 @@ class ResponseHelper {
    * @param {Response} res 
    * @param {String} message The error message
    * @param {Number} status HTTP status code
-   * @returns 
+   * @returns {Response} Express response
    */
   static Error( res, message, status = 400 ) {
     try {

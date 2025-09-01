@@ -7,6 +7,12 @@
  * @property {Number} status HTTP status code
  */
 class CustomErrorHelper extends Error {
+
+  /**
+   * Constructor
+   * @param {String} message 
+   * @param {Number} status 
+   */
   constructor( message, status = 400 ) {
     super( message )
 

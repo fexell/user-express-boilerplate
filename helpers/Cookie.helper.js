@@ -42,8 +42,8 @@ class CookieHelper {
   /**
    * @method CookieHelper.CookieOptions
    * @description The options for a "normal" cookie, accessible from the client
-   * @param {Number} maxAge 
-   * @returns {Object}
+   * @param {Number} maxAge Max age of the cookie
+   * @returns {Object} The non-HTTPOnly cookie options
    */
   static CookieOptions( maxAge ) {
     return {
@@ -57,8 +57,8 @@ class CookieHelper {
   /**
    * @method CookieHelper.SignedHttpOnlyCookieOptions
    * @description The options for a "signed http only cookie", inaccessible from the client
-   * @param {*} maxAge 
-   * @returns {Object}
+   * @param {Number} maxAge Max age of the cookie
+   * @returns {Object} The HTTPOnly cookie options
    */
   static SignedHttpOnlyCookieOptions( maxAge ) {
     return {
@@ -75,7 +75,7 @@ class CookieHelper {
    * Set Cookies
    * 
    * @method CookieHelper.SetCookie
-   * @description Set a "normal" cookie
+   * @description Set a "normal" (non-HTTPOnly) cookie
    * @param {Response} res 
    * @param {String} name 
    * @param {String} value 
@@ -129,7 +129,7 @@ class CookieHelper {
    * @description Get User Id Cookie
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {Mongoose.ObjectId} The user id
    */
   static GetUserIdCookie( req, res ) {
     try {
@@ -164,7 +164,7 @@ class CookieHelper {
    * @description Get Access Token from the signed cookie
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The Access Token
    */
   static GetAccessTokenCookie( req, res ) {
     try {
@@ -196,7 +196,7 @@ class CookieHelper {
    * @description Get Refresh Token from the signed cookie
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The Refresh Token
    */
   static GetRefreshTokenCookie( req, res ) {
     try {
@@ -226,7 +226,7 @@ class CookieHelper {
    * @description Get Refresh Token Id from the signed cookie
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {Mongoose.ObjectId} The Refresh Token Id
    */
   static GetRefreshTokenIdCookie( req, res ) {
     try {
@@ -234,6 +234,7 @@ class CookieHelper {
         throw new CustomErrorHelper( req.t( 'refreshTokenId.invalid' ) )
 
       return req.signedCookies.refreshTokenId || null
+
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
     }
@@ -259,7 +260,7 @@ class CookieHelper {
    * @description Get Device Id from the signed cookie
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The Device Id
    */
   static GetDeviceIdCookie( req, res ) {
     try {
@@ -287,6 +288,12 @@ class CookieHelper {
     }
   }
 
+  /**
+   * @method CookieHelper.ClearAllCookies
+   * @description Clear all cookies
+   * @param {Response} res 
+   * @returns {void}
+   */
   static ClearAllCookies( res ) {
     try {
 

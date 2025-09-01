@@ -12,7 +12,7 @@ class StringHelper {
    * @method StringHelper.Capitalize
    * @description Capitalize a string (and lowercase the rest)
    * @param {String} string 
-   * @returns {String}
+   * @returns {String} The capitalized string
    */
   static Capitalize( string ) {
 

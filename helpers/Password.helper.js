@@ -13,7 +13,7 @@ class PasswordHelper {
    * @method PasswordHelper.Hash
    * @description Hashes the password
    * @param {String} password The password to hash
-   * @returns 
+   * @returns {String} The hashed password
    */
   static async Hash( password ) {
     try {
@@ -28,7 +28,7 @@ class PasswordHelper {
    * @description Verifies the password
    * @param {String} hash The hashed password
    * @param {String} password The password (unhashed) to verify
-   * @returns 
+   * @returns {Boolean} Whether the password is valid or not
    */
   static async Verify( hash, password ) {
     try {

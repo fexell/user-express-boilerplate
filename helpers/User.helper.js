@@ -25,8 +25,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserId
    * @description Get the user's id from req, session or cookie
-   * @param {*} req 
-   * @param {*} res 
+   * @param {Request} req 
+   * @param {Response} res 
    * @returns {Mongoose.ObjectId}
    */
   static GetUserId( req, res ) {
@@ -45,7 +45,7 @@ class UserHelper {
    * @description Get the user's email
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The user's email
    */
   static async GetUserEmail( req, res ) {
     try {
@@ -66,7 +66,7 @@ class UserHelper {
    * @description Get the user's username
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The user's username
    */
   static async GetUserUsername( req, res ) {
     try {
@@ -87,7 +87,7 @@ class UserHelper {
    * @description Get the user's ip address
    * @param {Request} req 
    * @param {Response} res 
-   * @returns {String}
+   * @returns {String} The user's ip address
    */
   static GetIpAddress( req, res ) {
     try {
@@ -105,7 +105,7 @@ class UserHelper {
    * @description Get the user's user agent / browser information
    * @param {Request} req 
    * @param {Response} res 
-   * @returns {String}
+   * @returns {String} The user's user agent
    */
   static GetUserAgent( req, res ) {
     try {
@@ -124,7 +124,7 @@ class UserHelper {
    * @param {Request} req 
    * @param {Reponse} res 
    * @param {Mongoose.ObjectId} uid 
-   * @returns 
+   * @returns {String} The hashed device id
    */
   static GenerateDeviceId( req, res, uid ) {
     try {
@@ -160,7 +160,7 @@ class UserHelper {
    * @description Get the user's device id
    * @param {Request} req 
    * @param {Response} res 
-   * @returns 
+   * @returns {String} The user's device id, from req, session or cookie
    */
   static GetDeviceId( req, res ) {
     try {
@@ -176,10 +176,10 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserById
    * @description Get/retrieve the user's record from MongoDB by id
-   * @param {mongoose.ObjectId} userId - The user's id
-   * @param {Boolean} lean - Whether to lean (return plain javascript object) or not
-   * @param {Boolean} withPassword - Whether to return the password or not
-   * @returns {Mongoose.Document}
+   * @param {mongoose.ObjectId} userId The user's id
+   * @param {Boolean} lean Whether to lean (return plain javascript object) or not
+   * @param {Boolean} withPassword Whether to return the password or not
+   * @returns {Mongoose.Document} The user's record, by id
    */
   static async GetUserById( req, res, userId, lean = false, withPassword = false ) {
     try {
@@ -204,7 +204,7 @@ class UserHelper {
    * @param {String} email - The email address to retrieve a user by
    * @param {Boolean} lean - Whether to lean (return plain javascript object) or not
    * @param {Boolean} withPassword - Whether to return the password or not
-   * @returns {Mongoose.Document}
+   * @returns {Mongoose.Document} The user's record, by email
    */
   static async GetUserByEmail( req, res, email, lean = false, withPassword = false ) {
     try {
@@ -229,7 +229,7 @@ class UserHelper {
    * @param {Response} res 
    * @param {String} username 
    * @param {Boolean} lean 
-   * @returns {Mongoose.Document}
+   * @returns {Mongoose.Document} The user's record, by username
    */
   static async GetUserByUsername( req, res, username, lean = false ) {
     try {

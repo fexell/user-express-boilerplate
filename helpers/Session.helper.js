@@ -2,7 +2,17 @@
 
 import ResponseHelper from './Response.helper.js'
 
+/**
+ * @class SessionHelper
+ * @classdesc Contains all helper methods related to sessions
+ */
 class SessionHelper {
+
+  /**
+   * @method SessionHelper.ClearAllSessions
+   * @param {Request} req 
+   * @returns {void}
+   */
   static ClearAllSessions( req ) {
     try {
 
