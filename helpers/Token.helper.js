@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import ms from 'ms'
 
 import { PRIVATE_KEY, PUBLIC_KEY } from '../app.js'
 
@@ -289,6 +290,7 @@ class TokenHelper {
         ipAddress                           : UserHelper.GetIpAddress( req, res ),
         userAgent                           : UserHelper.GetUserAgent( req, res ),
         token                               : this.SignRefreshToken( userId || UserHelper.GetUserId( req, res ) ),
+        expiresAt                           : new Date( Date.now() + ms( ExpirationTime.REFRESH_TOKEN ) ),
       })
 
       // Save the Refresh Token record

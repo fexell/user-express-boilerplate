@@ -22,6 +22,11 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : String,
     required                                : true,
   },
+  expiresAt                                 : {
+    type                                    : Date,
+    required                                : true,
+    expires                                 : 0,
+  }
 }, {
   timestamps                                : true,
 })
