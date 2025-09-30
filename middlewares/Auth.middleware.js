@@ -139,6 +139,7 @@ class AuthMiddleware {
   static async DataCheck( req, res, next ) {
     try {
 
+      // Get all stored user data
       const fields                          = [
         { name: 'userId', getter: () => UserHelper.GetUserId( req, res ) },
         { name: 'deviceId', getter: () => UserHelper.GetDeviceId( req, res ) },
@@ -147,16 +148,24 @@ class AuthMiddleware {
         { name: 'refreshTokenId', getter: () => TokenHelper.GetRefreshTokenId( req, res ) },
       ]
 
+      // For each name, and getter in fields
       for( const { name, getter } of fields ) {
+
+        // Get the getter
         const value                         = getter()
+
+        // Get the value from the session
         const sessionValue                  = req.session[ name ]
 
+        // If the value, or the session value, is not found, logout the user
         if( !value || !sessionValue )
           return AuthController.Logout( req, res, next, true )
 
+        // Buffer
         const valueBuffer                   = Buffer.from(String(value))
         const sessionBuffer                 = Buffer.from(String(sessionValue))
 
+        // If the value, or the session value, is not equal to the session value, logout the user
         if( valueBuffer.length !== sessionBuffer.length || !crypto.timingSafeEqual( valueBuffer, sessionBuffer ) )
           return AuthController.Logout( req, res, next, true )
       }
