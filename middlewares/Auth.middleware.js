@@ -62,7 +62,7 @@ class AuthMiddleware {
         throw new CustomErrorHelper( req.t('route.protected') )
 
       // Validate the access token
-      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
+      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
 
       // If the access token is valid, return the next middleware
       if( decodedAccessToken ) {
@@ -73,6 +73,8 @@ class AuthMiddleware {
 
         // Update the access token in req object and session
         req.accessToken                     = req.session.accessToken                     = accessToken
+        req.decodedAccessToken              = decodedAccessToken
+        req.userId                          = req.session.userId                          = userId
 
         // Continue to the next middleware or route
         return next()
@@ -87,11 +89,13 @@ class AuthMiddleware {
         if( !refreshTokenRecord )
           return AuthController.Logout( req, res, next, true )
 
+        const deviceId                      = UserHelper.GetDeviceId( req, res )
+
         // If the device id from the refresh token record does not match the device id, logout the user
-        else if(
-          !UserHelper.GetDeviceId( req, res ) ||
-          UserHelper.GetDeviceId( req, res ).length !== 64 ||
-          refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res )
+        if(
+          !deviceId ||
+          deviceId.length !== 64 ||
+          refreshTokenRecord.deviceId !== deviceId
         ) {
 
           // Logout the user (force logout since the device id does not match the one in the refresh token record)
@@ -113,6 +117,8 @@ class AuthMiddleware {
         req.accessToken                     = req.session.accessToken                     = newAccessToken
         req.refreshToken                    = req.session.refreshToken                    = newRefreshTokenRecord.token
         req.refreshTokenId                  = req.session.refreshTokenId                  = newRefreshTokenRecord._id
+        req.decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, newAccessToken, 'access' )
+        req.decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, newRefreshTokenRecord.token, 'refresh' )
 
         // Continue to the next middleware or route
         return next()
@@ -133,36 +139,27 @@ class AuthMiddleware {
   static async DataCheck( req, res, next ) {
     try {
 
-      // Get the user id, device id, access token, refresh token and refresh token id
-      const userId                          = UserHelper.GetUserId( req, res )
-      const deviceId                        = UserHelper.GetDeviceId( req, res )
-      const accessToken                     = TokenHelper.GetAccessToken( req, res )
-      const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
-      const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
+      const fields                          = [
+        { name: 'userId', getter: () => UserHelper.GetUserId( req, res ) },
+        { name: 'deviceId', getter: () => UserHelper.GetDeviceId( req, res ) },
+        { name: 'accessToken', getter: () => TokenHelper.GetAccessToken( req, res ) },
+        { name: 'refreshToken', getter: () => TokenHelper.GetRefreshToken( req, res ) },
+        { name: 'refreshTokenId', getter: () => TokenHelper.GetRefreshTokenId( req, res ) },
+      ]
 
-      // Create a buffer from the user id, access token, refresh token and refresh token id
-      const userIdBuffer                    = Buffer.from( userId )
-      const deviceIdBuffer                  = Buffer.from( deviceId )
-      const accessTokenBuffer               = Buffer.from( accessToken )
-      const refreshTokenBuffer              = Buffer.from( refreshToken )
-      const refreshTokenIdBuffer            = Buffer.from( refreshTokenId )
+      for( const { name, getter } of fields ) {
+        const value                         = getter()
+        const sessionValue                  = req.session[ name ]
 
-      // Create a buffer from the session user id, device id, access token, refresh token and refresh token id
-      const sessionUserIdBuffer             = Buffer.from( req.session.userId )
-      const sessionDeviceIdBuffer           = Buffer.from( req.session.deviceId )
-      const sessionAccessTokenBuffer        = Buffer.from( req.session.accessToken )
-      const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshToken )
-      const sessionRefreshTokenIdBuffer     = Buffer.from( req.session.refreshTokenId )
+        if( !value || !sessionValue )
+          return AuthController.Logout( req, res, next, true )
 
-      // If the stored user data does not match the session user data, logout the user
-      if(
-        !crypto.timingSafeEqual( userIdBuffer, sessionUserIdBuffer ) ||
-        !crypto.timingSafeEqual( deviceIdBuffer, sessionDeviceIdBuffer ) ||
-        !crypto.timingSafeEqual( accessTokenBuffer, sessionAccessTokenBuffer ) ||
-        !crypto.timingSafeEqual( refreshTokenBuffer, sessionRefreshTokenBuffer ) ||
-        !crypto.timingSafeEqual( refreshTokenIdBuffer, sessionRefreshTokenIdBuffer )
-      )
-        return AuthController.Logout( req, res, next, true )
+        const valueBuffer                   = Buffer.from(String(value))
+        const sessionBuffer                 = Buffer.from(String(sessionValue))
+
+        if( valueBuffer.length !== sessionBuffer.length || !crypto.timingSafeEqual( valueBuffer, sessionBuffer ) )
+          return AuthController.Logout( req, res, next, true )
+      }
 
       // Continue to the next middleware or route
       return next()
@@ -188,16 +185,25 @@ class AuthMiddleware {
       const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
 
       // Validate and decode the access token and refresh token
-      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
-      const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, refreshToken, 'refresh' )
+      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
+      const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, refreshToken, 'refresh' )
 
-      // If the tokens are not valid, logout the user
-      if( !decodedAccessToken || !decodedRefreshToken )
+      if( !decodedRefreshToken )
         return AuthController.Logout( req, res, next, true )
 
+      if( !decodedAccessToken )
+        console.log( 'Access token expired or invalid.' )
+
       // Bind the variables to req and session
-      req.accessToken                       = req.session.accessToken                     = accessToken
-      req.refreshToken                      = req.session.refreshToken                    = refreshToken
+      if( decodedAccessToken ) {
+        req.accessToken                     = req.session.accessToken                     = accessToken
+        req.decodedAccessToken              = decodedAccessToken
+      }
+
+      if( decodedRefreshToken ) {
+        req.refreshToken                    = req.session.refreshToken                    = refreshToken
+        req.decodedRefreshToken             = decodedRefreshToken
+      }
 
       // Continue to the next middleware or route
       return next()
