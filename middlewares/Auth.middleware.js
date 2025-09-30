@@ -18,15 +18,15 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @class AuthMiddleware
  * @classdesc Contains all methods related to authentication and authorization
  * 
- * @method AuthMiddleware.Authenticate Authentication middleware, checking whether the user has access to the route
- * @method AuthMiddleware.DataCheck Authentication middleware, that checks nothing has been tampered with
- * @method AuthMiddleware.ValidateTokens Authentication middleware, checking whether the tokens are valid
- * @method AuthMiddleware.AlreadyLoggedIn Authentication middleware, checking whether the user is already logged in
- * @method AuthMiddleware.AlreadyLoggedOut Authentication middleware, checking whether the user is already logged out
- * @method AuthMiddleware.RoleChecker Authorization middleware, checking whether the user has the required role to access the route
- * @method AuthMiddleware.EmailVerified Authentication middleware, checking whether the user's email address is verified
- * @method AuthMiddleware.AccountInactive Authentication middleware, checking whether the user's account is active
- * @method AuthMiddleware.RefreshTokenRevoked Authentication middleware, checking whether the refresh token is revoked
+ * @method AuthMiddleware.Authenticate Authenticates the user's access or refresh token, to ensure that the user is logged in, and has access to the route
+ * @method AuthMiddleware.DataCheck Validates the integrity of user-related data by comparing values from helpers against the session
+ * @method AuthMiddleware.ValidateTokens Validates the integrity of the access and refresh tokens
+ * @method AuthMiddleware.AlreadyLoggedIn Checks whether the user is already logged in
+ * @method AuthMiddleware.AlreadyLoggedOut Checks whether the user is already logged out
+ * @method AuthMiddleware.RoleChecker Authenticates whether the user has the required role to access the route
+ * @method AuthMiddleware.EmailVerified Checks whether the user's email is verified
+ * @method AuthMiddleware.AccountInactive Checks if the user's account is inactive
+ * @method AuthMiddleware.RefreshTokenRevoked Checks if the current refresh token is revoked
  * 
  * @exports AuthMiddleware
  * 
@@ -130,7 +130,7 @@ class AuthMiddleware {
 
   /**
    * @method AuthMiddleware.DataCheck
-   * @description A middleware that checks the validity of the user data
+   * @description Validates the integrity of user-related data by comparing values from helpers against the session
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
@@ -139,7 +139,7 @@ class AuthMiddleware {
   static async DataCheck( req, res, next ) {
     try {
 
-      // Get all stored user data
+      // Define the user-related fields we want to verify against the session
       const fields                          = [
         { name: 'userId', getter: () => UserHelper.GetUserId( req, res ) },
         { name: 'deviceId', getter: () => UserHelper.GetDeviceId( req, res ) },
@@ -148,24 +148,24 @@ class AuthMiddleware {
         { name: 'refreshTokenId', getter: () => TokenHelper.GetRefreshTokenId( req, res ) },
       ]
 
-      // For each name, and getter in fields
+      // Loop through each field and validate it
       for( const { name, getter } of fields ) {
 
-        // Get the getter
+        // Get the value using the helper
         const value                         = getter()
 
-        // Get the value from the session
+        // Get the corresponding value stored in the session
         const sessionValue                  = req.session[ name ]
 
-        // If the value, or the session value, is not found, logout the user
+        // If either is missing -> force logout
         if( !value || !sessionValue )
           return AuthController.Logout( req, res, next, true )
 
-        // Buffer
-        const valueBuffer                   = Buffer.from(String(value))
-        const sessionBuffer                 = Buffer.from(String(sessionValue))
+        // Convert both values to buffers for safe comparison
+        const valueBuffer                   = Buffer.from( String( value ) )
+        const sessionBuffer                 = Buffer.from( String( sessionValue ) )
 
-        // If the value, or the session value, is not equal to the session value, logout the user
+        // If values don't match (length or content) -> force logout
         if( valueBuffer.length !== sessionBuffer.length || !crypto.timingSafeEqual( valueBuffer, sessionBuffer ) )
           return AuthController.Logout( req, res, next, true )
       }
@@ -197,11 +197,11 @@ class AuthMiddleware {
       const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
       const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, refreshToken, 'refresh' )
 
-      if( !decodedRefreshToken )
-        return AuthController.Logout( req, res, next, true )
-
-      if( !decodedAccessToken )
+      if( accessToken && !decodedAccessToken )
         console.log( 'Access token expired or invalid.' )
+
+      if( refreshToken && !decodedRefreshToken )
+        return AuthController.Logout( req, res, next, true )
 
       // Bind the variables to req and session
       if( decodedAccessToken ) {

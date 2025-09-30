@@ -84,7 +84,7 @@ class TokenHelper {
       return jwt.sign( payload, { key: PRIVATE_KEY, passphrase: JWT_SECRET }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -98,11 +98,11 @@ class TokenHelper {
   static SignAccessToken( payload, jwtId ) {
     try {
 
-      // Sign the Access Token, with its expiration time (3 minutes) and jsonwebtoken id
+      // Sign the Access Token, with its expiration time (15 minutes) and jsonwebtoken id
       return this.Sign( { userId: payload }, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -119,7 +119,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -138,7 +138,7 @@ class TokenHelper {
       return jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -159,7 +159,7 @@ class TokenHelper {
       return this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -177,7 +177,7 @@ class TokenHelper {
       return req.accessToken || req.session.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
       
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -209,7 +209,7 @@ class TokenHelper {
       return accessToken
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -228,7 +228,7 @@ class TokenHelper {
       return this.VerifyToken( token, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-    throw new CustomErrorHelper( error )
+    throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -246,7 +246,7 @@ class TokenHelper {
       return req.refreshToken || req.session.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -264,7 +264,7 @@ class TokenHelper {
       return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -309,7 +309,7 @@ class TokenHelper {
       return newRefreshTokenRecord
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -342,7 +342,7 @@ class TokenHelper {
       return refreshTokenRecord
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -374,7 +374,7 @@ class TokenHelper {
       return refreshTokenRecords
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
@@ -449,7 +449,7 @@ class TokenHelper {
       }
       
     } catch ( error ) {
-      throw new CustomErrorHelper( error )
+      throw new CustomErrorHelper( error.message )
     }
   }
 
