@@ -10,6 +10,7 @@ import CookieHelper, { CookieNames } from './Cookie.helper.js'
 import RegexHelper from './Regex.helper.js'
 import ResponseHelper from './Response.helper.js'
 import TimeHelper from './Time.helper.js'
+import AuthController from '../controllers/Auth.controller.js'
 
 /**
  * @class UserHelper
@@ -129,25 +130,25 @@ class UserHelper {
    * @param {Mongoose.ObjectId} uid 
    * @returns {String} The hashed device id
    */
-  static GenerateDeviceId( req, res, uid ) {
+  static GenerateDeviceId( req, res, uid, forceNew = false ) {
     try {
-      // Get the user's id, from either parameter, or req, session, or cookie
-      const userId                            = uid || this.GetUserId( req, res )
+      let salt
 
-      // Get the user agent
-      const userAgent                         = this.GetUserAgent( req, res )
+      // Get the user's id, from either parameter, or req, session, or cookie
+      const userId                          = uid || this.GetUserId( req, res )
 
       // Get the device id
-      let deviceId                            = this.GetDeviceId( req, res )
+      let deviceId                          = !forceNew ? this.GetDeviceId( req, res ) : null
 
       // If no device id could be found
       if( !deviceId ) {
+        salt                                = crypto.randomBytes( 16 ).toString( 'hex' )
 
         // Generate the device id
-        const data                              = `${ userId }`
+        const data                          = `${ userId }:${ salt }`
 
         // Set the device id to the hash
-        deviceId                                = crypto.createHmac( 'sha256', DEVICE_ID_SECRET ).update( data ).digest( 'hex' )
+        deviceId                            = crypto.createHmac( 'sha256', DEVICE_ID_SECRET ).update( data ).digest( 'hex' )
 
         // Store the device id in a cookie
         CookieHelper.SetDeviceIdCookie( res, deviceId )
@@ -157,7 +158,7 @@ class UserHelper {
       req.deviceId                            = req.session.deviceId                        = deviceId
 
       // Return the hashed device id
-      return deviceId
+      return { deviceId, salt }
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
@@ -179,6 +180,31 @@ class UserHelper {
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
+    }
+  }
+
+  static ValidateDeviceId( req, res, refreshTokenRecord ) {
+    try {
+      const deviceId                        = this.GetDeviceId( req, res )
+
+      if( !deviceId || !refreshTokenRecord?.salt )
+        return false
+
+      const expectedDeviceId                = crypto
+        .createHmac( 'sha254', DEVICE_ID_SECRET )
+        .update( `${ refreshTokenRecord.userId }:${ refreshTokenRecord.salt }` )
+        .digest( 'hex' )
+
+      const deviceIdBuffer                  = Buffer.from( deviceId, 'utf-8' )
+      const expectedBuffer                  = Buffer.from( expectedDeviceId, 'utf-8' )
+
+      if( deviceIdBuffer.length !== expectedBuffer.length )
+        return false
+
+      return crypto.timingSafeEqual( deviceIdBuffer, expectedBuffer )
+      
+    } catch( error ) {
+      return false
     }
   }
 

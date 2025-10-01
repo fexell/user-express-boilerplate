@@ -34,7 +34,7 @@ import TokenHelper from '../helpers/Token.helper.js'
  * Middlewares should be run in following order:
  * 1. ValidateTokens
  * 2. Authenticate
- * 3. DataCheck
+ * 3. VerifySessionData
  * 4. RefreshTokenRevoked
  * 5. EmailVerified
  * 6  AccountInactive
@@ -87,21 +87,8 @@ class AuthMiddleware {
         const refreshTokenRecord            = await TokenHelper.GetRefreshTokenRecord( req, res )
 
         // If the refresh token is not found, logout the user
-        if( !refreshTokenRecord )
+        if( !refreshTokenRecord || UserHelper.ValidateDeviceId( req, res, refreshTokenRecord ) )
           return AuthController.Logout( req, res, next, true )
-
-        const deviceId                      = UserHelper.GetDeviceId( req, res )
-
-        // If the device id from the refresh token record does not match the device id, logout the user
-        if(
-          !deviceId ||
-          deviceId.length !== 64 ||
-          refreshTokenRecord.deviceId !== deviceId
-        ) {
-
-          // Logout the user (force logout since the device id does not match the one in the refresh token record)
-          return AuthController.Logout( req, res, next, true )
-        }
 
         // Generate new JWT ID
         const jwtId                         = uuidv4()
@@ -198,9 +185,11 @@ class AuthMiddleware {
       const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
       const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, refreshToken, 'refresh' )
 
+      // If the access token is missing or invalid
       if( accessToken && !decodedAccessToken )
         console.log( 'Access token expired or invalid.' )
 
+      // If the refresh token is missing or invalid
       if( refreshToken && !decodedRefreshToken )
         return AuthController.Logout( req, res, next, true )
 
@@ -210,6 +199,7 @@ class AuthMiddleware {
         req.decodedAccessToken              = decodedAccessToken
       }
 
+      //
       if( decodedRefreshToken ) {
         req.refreshToken                    = req.session.refreshToken                    = refreshToken
         req.decodedRefreshToken             = decodedRefreshToken

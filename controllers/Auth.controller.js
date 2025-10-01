@@ -66,9 +66,6 @@ class AuthController {
       // Generate a new access token
       const accessToken                     = TokenHelper.GenerateNewAccessToken( req, res, user._id, jwtId )
 
-      // Sign a new refresh token
-      const refreshToken                    = TokenHelper.SignRefreshToken( user._id )
-
       // Generate a new refresh token record
       const newRefreshTokenRecord           = await TokenHelper.GenerateNewRefreshToken(
         req,
@@ -253,6 +250,14 @@ class AuthController {
     }
   }
 
+  /**
+   * @method AuthController.RevokeAllRefreshTokens
+   * @description The controller method handling revoking all refresh tokens of a user
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns Success response
+   */
   static async RevokeAllRefreshTokens( req, res, next ) {
     try {
       await TokenHelper.RevokeRefreshToken( req, res, 'All refresh tokens revoked', null, UserHelper.GetUserId( req, res ) )

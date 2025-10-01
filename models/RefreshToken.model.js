@@ -10,6 +10,10 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : String,
     required                                : true,
   },
+  salt                                      : {
+    type                                    : String,
+    required                                : true,
+  },
   token                                     : {
     type                                    : String,
     required                                : true,
