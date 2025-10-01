@@ -1,12 +1,13 @@
 import crypto from 'crypto'
 import requestIp from 'request-ip'
+import { Mongoose } from 'mongoose'
 
 import UserModel from '../models/User.model.js'
 
 import CookieHelper, { CookieNames } from './Cookie.helper.js'
+import RegexHelper from './Regex.helper.js'
 import ResponseHelper from './Response.helper.js'
 import TimeHelper from './Time.helper.js'
-import { Mongoose } from 'mongoose'
 
 /**
  * @class UserHelper
@@ -234,12 +235,18 @@ class UserHelper {
   static async GetUserByUsername( req, res, username, lean = false ) {
     try {
 
-      const usernameRegex                 = new RegExp( `^(${ username || await this.GetUserUsername( req, res ) })$`, 'i' )
+      // If no username is provided, get the user's username
+      const input                           = username || await this.GetUserUsername( req, res )
+
+      // Case-insensitive exact match
+      const usernameRegex                   = new RegExp( `^(${ RegexHelper.Escape( input ) })$`, 'i' )
 
       // Attempt to find the user by username
+      const query                           = { username: { $regex: usernameRegex } }
+
       return !lean
-        ? await UserModel.findOne( { username: { $regex: usernameRegex } } )
-        : await UserModel.findOne( { username: { $regex: usernameRegex } } ).lean()
+        ? await UserModel.findOne( query )
+        : await UserModel.findOne( query ).lean()
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
