@@ -4,6 +4,8 @@ import { Mongoose } from 'mongoose'
 
 import UserModel from '../models/User.model.js'
 
+import { DEVICE_ID_SECRET } from '../configs/Environment.config.js'
+
 import CookieHelper, { CookieNames } from './Cookie.helper.js'
 import RegexHelper from './Regex.helper.js'
 import ResponseHelper from './Response.helper.js'
@@ -132,24 +134,30 @@ class UserHelper {
       // Get the user's id, from either parameter, or req, session, or cookie
       const userId                            = uid || this.GetUserId( req, res )
 
-      // Get the user's ip address
-      const ipAddress                         = this.GetIpAddress( req, res )
-
       // Get the user agent
       const userAgent                         = this.GetUserAgent( req, res )
 
-      // Generate the device id
-      const data                              = `${ userId }:${ ipAddress }:${ userAgent }`
-      const hash                              = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
+      // Get the device id
+      let deviceId                            = this.GetDeviceId( req, res )
 
-      // Store the device id in a cookie
-      CookieHelper.SetDeviceIdCookie( res, hash )
+      // If no device id could be found
+      if( !deviceId ) {
 
-      // Store the device id in req, and session
-      req.deviceId                            = req.session.deviceId                        = hash
+        // Generate the device id
+        const data                              = `${ userId }`
+
+        // Set the device id to the hash
+        deviceId                                = crypto.createHmac( 'sha256', DEVICE_ID_SECRET ).update( data ).digest( 'hex' )
+
+        // Store the device id in a cookie
+        CookieHelper.SetDeviceIdCookie( res, deviceId )
+      }
+
+      // Store in request and session for easy access
+      req.deviceId                            = req.session.deviceId                        = deviceId
 
       // Return the hashed device id
-      return hash
+      return deviceId
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
