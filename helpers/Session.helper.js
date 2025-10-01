@@ -10,6 +10,7 @@ class SessionHelper {
 
   /**
    * @method SessionHelper.ClearAllSessions
+   * @description Clears all the session variables
    * @param {Request} req 
    * @returns {void}
    */

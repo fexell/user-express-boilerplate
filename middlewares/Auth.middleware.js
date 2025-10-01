@@ -44,7 +44,7 @@ class AuthMiddleware {
   /**
    * @memberof AuthMiddleware
    * @method AuthMiddleware.Authenticate
-   * @description Authentication middleware, checking whether the user has access to the route
+   * @description Authenticates the user's access or refresh token, to ensure that the user is logged in, and has access to the route
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
@@ -180,7 +180,7 @@ class AuthMiddleware {
 
   /**
    * @method AuthMiddleware.ValidateTokens
-   * @description A middleware that checks the validity of the access token and refresh token
+   * @description Validates the integrity of the access and refresh tokens
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
