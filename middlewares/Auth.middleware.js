@@ -20,7 +20,7 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @classdesc Contains all methods related to authentication and authorization
  * 
  * @method AuthMiddleware.Authenticate Authenticates the user's access or refresh token, to ensure that the user is logged in, and has access to the route
- * @method AuthMiddleware.DataCheck Validates the integrity of user-related data by comparing values from helpers against the session
+ * @method AuthMiddleware.VerifySessionData Validates the integrity of user-related data by comparing values from helpers against the session
  * @method AuthMiddleware.ValidateTokens Validates the integrity of the access and refresh tokens
  * @method AuthMiddleware.AlreadyLoggedIn Checks whether the user is already logged in
  * @method AuthMiddleware.AlreadyLoggedOut Checks whether the user is already logged out
@@ -130,14 +130,14 @@ class AuthMiddleware {
   }
 
   /**
-   * @method AuthMiddleware.DataCheck
+   * @method AuthMiddleware.VerifySessionData
    * @description Validates the integrity of user-related data by comparing values from helpers against the session
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
    * @returns {NextFunction}
    */
-  static async DataCheck( req, res, next ) {
+  static async VerifySessionData( req, res, next ) {
     try {
 
       // Define the user-related fields we want to verify against the session

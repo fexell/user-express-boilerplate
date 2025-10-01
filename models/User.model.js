@@ -24,18 +24,21 @@ const UserSchema                            = new Schema({
     match                                   : [ /^[a-zA-Z0-9]+$/, t('username.invalid') ],
     validate                                : {
       validator                             : async function( value ) {
-        const usernameRegex                 = new RegExp( /^[a-zA-Z0-9]+$/, 'i' )
+        const usernameRegex                 = new RegExp( `^(${ value })$`, 'i' )
         const user                          = await this.constructor.findOne({
           username                          : {
             $regex                          : usernameRegex,
           },
         })
 
-        if(this.isNew && user)
+        if( this.isNew && user )
           throw new ErrorHelper( t('username.taken') )
 
-        else if(!this.isNew && !usernameRegex.test(this.username))
-          throw new ErrorHelper( t('username.taken') )
+        else if( this.isNew && !new RegExp( `^[a-zåäö0-9_]+$`, 'i' ).test( value ) )
+          throw new ErrorHelper( t('username.invalid') )
+
+        if( !this.isNew && !new RegExp( `^(${ user.username })$`, 'i' ).test( value ) )
+          throw new ErrorHelper( t('username.variation') )
 
         return true
       }

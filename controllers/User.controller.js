@@ -60,7 +60,7 @@ class UserController {
       await newUser.save()
 
       // Return the new user
-      return ResponseHelper.Success( res, req.t('user.created'), 201, UserModel.SerializeUser( newUser ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.created'), StatusCodes.CREATED, UserModel.SerializeUser( newUser ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -86,7 +86,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.data.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.data.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -119,7 +119,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -152,7 +152,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -185,7 +185,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -214,7 +214,7 @@ class UserController {
         throw new CustomErrorHelper( req.t('users.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the users
-      return ResponseHelper.Success( res, req.t('users.found'), 200, users.map( user => UserModel.SerializeUser( user ) ), 'users' )
+      return ResponseHelper.Success( res, req.t('users.found'), StatusCodes.OK, users.map( user => UserModel.SerializeUser( user ) ), 'users' )
 
     } catch ( error ) {
       return next( error )
@@ -263,7 +263,7 @@ class UserController {
       await user.save()
 
       // Return the user, and a success message
-      return ResponseHelper.Success( res, req.t('user.updated'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.updated'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )

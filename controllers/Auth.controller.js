@@ -88,7 +88,7 @@ class AuthController {
       req.refreshTokenId                    = req.session.refreshTokenId                  = newRefreshTokenRecord._id
 
       // Return the success response
-      return ResponseHelper.Success( res, req.t('user.login.success'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.login.success'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -203,7 +203,7 @@ class AuthController {
 
       // If the user id was not found
       if( !userId )
-        throw new CustomErrorHelper( req.t('user.id.notFound') )
+        throw new CustomErrorHelper( req.t('user.id.notFound'), StatusCodes.NOT_FOUND )
 
       // Sort by whatever the user wants (from query) or sort by createdAt
       const sort                            = req.query.sort || '-createdAt'
@@ -212,7 +212,7 @@ class AuthController {
       const units                           = await RefreshTokenModel.find( { userId: userId } ).sort( sort ).lean()
 
       // Return the success response
-      return ResponseHelper.Success( res, req.t('user.units.found'), 200, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
+      return ResponseHelper.Success( res, req.t('user.units.found'), StatusCodes.OK, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
 
     } catch ( error ) {
       return next( error )

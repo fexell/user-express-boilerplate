@@ -234,10 +234,12 @@ class UserHelper {
   static async GetUserByUsername( req, res, username, lean = false ) {
     try {
 
+      const usernameRegex                 = new RegExp( `^(${ username || await this.GetUserUsername( req, res ) })$`, 'i' )
+
       // Attempt to find the user by username
       return !lean
-        ? await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } )
-        : await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } ).lean()
+        ? await UserModel.findOne( { username: { $regex: usernameRegex } } )
+        : await UserModel.findOne( { username: { $regex: usernameRegex } } ).lean()
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
