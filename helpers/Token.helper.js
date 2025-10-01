@@ -13,6 +13,7 @@ import TokenBlacklistModel from '../models/TokenBlacklist.model.js'
 import CookieHelper from './Cookie.helper.js'
 import CustomErrorHelper from './Error.helper.js'
 import ResponseHelper from './Response.helper.js'
+import StatusCodes from './StatusCodes.helper.js'
 import UserHelper from './User.helper.js'
 import { mongo } from 'mongoose'
 import { token } from 'morgan'
@@ -84,7 +85,7 @@ class TokenHelper {
       return jwt.sign( payload, { key: PRIVATE_KEY, passphrase: JWT_SECRET }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -102,7 +103,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -119,7 +120,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -138,7 +139,7 @@ class TokenHelper {
       return jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -159,7 +160,7 @@ class TokenHelper {
       return this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -177,7 +178,7 @@ class TokenHelper {
       return req.accessToken || req.session.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
       
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -209,7 +210,7 @@ class TokenHelper {
       return accessToken
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -228,7 +229,7 @@ class TokenHelper {
       return this.VerifyToken( token, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-    throw new CustomErrorHelper( error.message )
+    throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -246,7 +247,7 @@ class TokenHelper {
       return req.refreshToken || req.session.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -264,7 +265,7 @@ class TokenHelper {
       return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -309,7 +310,7 @@ class TokenHelper {
       return newRefreshTokenRecord
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -342,7 +343,7 @@ class TokenHelper {
       return refreshTokenRecord
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -374,7 +375,7 @@ class TokenHelper {
       return refreshTokenRecords
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 
@@ -449,7 +450,7 @@ class TokenHelper {
       }
       
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message )
+      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
     }
   }
 

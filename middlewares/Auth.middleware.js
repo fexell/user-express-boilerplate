@@ -11,6 +11,7 @@ import UserModel from '../models/User.model.js'
 import CookieHelper from '../helpers/Cookie.helper.js'
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import SessionHelper from '../helpers/Session.helper.js'
+import StatusCodes from '../helpers/StatusCodes.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 import TokenHelper from '../helpers/Token.helper.js'
 
@@ -59,7 +60,7 @@ class AuthMiddleware {
 
       // Check if the user has the user id and access token stored in either session or cookie
       if( !userId && !accessToken )
-        throw new CustomErrorHelper( req.t('route.protected') )
+        throw new CustomErrorHelper( req.t('route.protected'), StatusCodes.UNAUTHORIZED )
 
       // Validate the access token
       const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
@@ -293,11 +294,11 @@ class AuthMiddleware {
 
         // If roles is a string, and the user is not the required role
         if( typeof roles === 'string' && roles !== user.role )
-          throw new CustomErrorHelper( req.t('user.unauthorized') )
+          throw new CustomErrorHelper( req.t('user.unauthorized'), StatusCodes.UNAUTHORIZED )
 
         // Else if roles is an array, and the user's role is not in the required roles
         else if( Array.isArray( roles ) && !roles.includes( user.role ) )
-          throw new CustomErrorHelper( req.t('user.unauthorized') )
+          throw new CustomErrorHelper( req.t('user.unauthorized'), StatusCodes.UNAUTHORIZED )
 
         // Continue to the next middleware or route
         return next()
@@ -324,14 +325,14 @@ class AuthMiddleware {
 
       // If the email was not found
       if( !email )
-        throw new CustomErrorHelper( req.t('email.notFound') )
+        throw new CustomErrorHelper( req.t('email.notFound'), StatusCodes.NOT_FOUND )
 
       // Get the user's record, by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user's email is not verified
       if( !user.isEmailVerified )
-        throw new CustomErrorHelper( req.t('email.notVerified') )
+        throw new CustomErrorHelper( req.t('email.notVerified'), StatusCodes.FORBIDDEN )
 
       // Continue to the next middleware or route
       return next()
@@ -357,14 +358,14 @@ class AuthMiddleware {
 
       // If the email was not found
       if( !email )
-        throw new CustomErrorHelper( req.t('email.notFound') )
+        throw new CustomErrorHelper( req.t('email.notFound'), StatusCodes.NOT_FOUND )
 
       // Get the user's record, by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user's account is not active
       if( !user.isActive )
-        throw new CustomErrorHelper( req.t('user.notActive') )
+        throw new CustomErrorHelper( req.t('user.notActive'), StatusCodes.FORBIDDEN )
 
       // Continue to the next middleware or route
       return next()
