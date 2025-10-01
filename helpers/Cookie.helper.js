@@ -153,7 +153,7 @@ class CookieHelper {
    */
   static SetAccessTokenCookie( res, accessToken ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FiveSeconds )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FifteenMinutes )
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
     }
