@@ -1,5 +1,7 @@
 
 
+import StatusCodes from './StatusCodes.helper.js'
+
 /**
  * @class CustomErrorHelper
  * @classdesc Custom Error Class, extended from Error, with status property
@@ -13,7 +15,7 @@ class CustomErrorHelper extends Error {
    * @param {String} message 
    * @param {Number} status 
    */
-  constructor( message, status = 400 ) {
+  constructor( message, status = StatusCodes.BAD_REQUEST ) {
     super( message )
 
     this.status                             = status

@@ -11,6 +11,7 @@ import UserModel from '../models/User.model.js'
 import CookieHelper from '../helpers/Cookie.helper.js'
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import SessionHelper from '../helpers/Session.helper.js'
+import StatusCodes from '../helpers/StatusCodes.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 import TokenHelper from '../helpers/Token.helper.js'
 
@@ -18,22 +19,22 @@ import TokenHelper from '../helpers/Token.helper.js'
  * @class AuthMiddleware
  * @classdesc Contains all methods related to authentication and authorization
  * 
- * @method AuthMiddleware.Authenticate Authentication middleware, checking whether the user has access to the route
- * @method AuthMiddleware.DataCheck Authentication middleware, that checks nothing has been tampered with
- * @method AuthMiddleware.ValidateTokens Authentication middleware, checking whether the tokens are valid
- * @method AuthMiddleware.AlreadyLoggedIn Authentication middleware, checking whether the user is already logged in
- * @method AuthMiddleware.AlreadyLoggedOut Authentication middleware, checking whether the user is already logged out
- * @method AuthMiddleware.RoleChecker Authorization middleware, checking whether the user has the required role to access the route
- * @method AuthMiddleware.EmailVerified Authentication middleware, checking whether the user's email address is verified
- * @method AuthMiddleware.AccountInactive Authentication middleware, checking whether the user's account is active
- * @method AuthMiddleware.RefreshTokenRevoked Authentication middleware, checking whether the refresh token is revoked
+ * @method AuthMiddleware.Authenticate Authenticates the user's access or refresh token, to ensure that the user is logged in, and has access to the route
+ * @method AuthMiddleware.VerifySessionData Validates the integrity of user-related data by comparing values from helpers against the session
+ * @method AuthMiddleware.ValidateTokens Validates the integrity of the access and refresh tokens
+ * @method AuthMiddleware.AlreadyLoggedIn Checks whether the user is already logged in
+ * @method AuthMiddleware.AlreadyLoggedOut Checks whether the user is already logged out
+ * @method AuthMiddleware.RoleChecker Authenticates whether the user has the required role to access the route
+ * @method AuthMiddleware.EmailVerified Checks whether the user's email is verified
+ * @method AuthMiddleware.AccountInactive Checks if the user's account is inactive
+ * @method AuthMiddleware.RefreshTokenRevoked Checks if the current refresh token is revoked
  * 
  * @exports AuthMiddleware
  * 
  * Middlewares should be run in following order:
  * 1. ValidateTokens
  * 2. Authenticate
- * 3. DataCheck
+ * 3. VerifySessionData
  * 4. RefreshTokenRevoked
  * 5. EmailVerified
  * 6  AccountInactive
@@ -44,7 +45,7 @@ class AuthMiddleware {
   /**
    * @memberof AuthMiddleware
    * @method AuthMiddleware.Authenticate
-   * @description Authentication middleware, checking whether the user has access to the route
+   * @description Authenticates the user's access or refresh token, to ensure that the user is logged in, and has access to the route
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
@@ -59,12 +60,10 @@ class AuthMiddleware {
 
       // Check if the user has the user id and access token stored in either session or cookie
       if( !userId && !accessToken )
-        throw new CustomErrorHelper( req.t('route.protected') )
+        throw new CustomErrorHelper( req.t('route.protected'), StatusCodes.UNAUTHORIZED )
 
       // Validate the access token
-      const decodedAccessToken              = await TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
-
-      console.log(decodedAccessToken)
+      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
 
       // If the access token is valid, return the next middleware
       if( decodedAccessToken ) {
@@ -75,6 +74,8 @@ class AuthMiddleware {
 
         // Update the access token in req object and session
         req.accessToken                     = req.session.accessToken                     = accessToken
+        req.decodedAccessToken              = decodedAccessToken
+        req.userId                          = req.session.userId                          = userId
 
         // Continue to the next middleware or route
         return next()
@@ -86,19 +87,8 @@ class AuthMiddleware {
         const refreshTokenRecord            = await TokenHelper.GetRefreshTokenRecord( req, res )
 
         // If the refresh token is not found, logout the user
-        if( !refreshTokenRecord )
+        if( !refreshTokenRecord || !UserHelper.ValidateDeviceId( req, res, refreshTokenRecord ) )
           return AuthController.Logout( req, res, next, true )
-
-        // If the device id from the refresh token record does not match the device id, logout the user
-        else if(
-          !UserHelper.GetDeviceId( req, res ) ||
-          UserHelper.GetDeviceId( req, res ).length !== 64 ||
-          refreshTokenRecord.deviceId !== UserHelper.GetDeviceId( req, res )
-        ) {
-
-          // Logout the user (force logout since the device id does not match the one in the refresh token record)
-          return AuthController.Logout( req, res, next, true )
-        }
 
         // Generate new JWT ID
         const jwtId                         = uuidv4()
@@ -115,6 +105,8 @@ class AuthMiddleware {
         req.accessToken                     = req.session.accessToken                     = newAccessToken
         req.refreshToken                    = req.session.refreshToken                    = newRefreshTokenRecord.token
         req.refreshTokenId                  = req.session.refreshTokenId                  = newRefreshTokenRecord._id
+        req.decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, newAccessToken, 'access' )
+        req.decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, newRefreshTokenRecord.token, 'refresh' )
 
         // Continue to the next middleware or route
         return next()
@@ -125,46 +117,46 @@ class AuthMiddleware {
   }
 
   /**
-   * @method AuthMiddleware.DataCheck
-   * @description A middleware that checks the validity of the user data
+   * @method AuthMiddleware.VerifySessionData
+   * @description Validates the integrity of user-related data by comparing values from helpers against the session
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
    * @returns {NextFunction}
    */
-  static async DataCheck( req, res, next ) {
+  static async VerifySessionData( req, res, next ) {
     try {
 
-      // Get the user id, device id, access token, refresh token and refresh token id
-      const userId                          = UserHelper.GetUserId( req, res )
-      const deviceId                        = UserHelper.GetDeviceId( req, res )
-      const accessToken                     = TokenHelper.GetAccessToken( req, res )
-      const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
-      const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
+      // Define the user-related fields we want to verify against the session
+      const fields                          = [
+        { name: 'userId', getter: () => UserHelper.GetUserId( req, res ) },
+        { name: 'deviceId', getter: () => UserHelper.GetDeviceId( req, res ) },
+        { name: 'accessToken', getter: () => TokenHelper.GetAccessToken( req, res ) },
+        { name: 'refreshToken', getter: () => TokenHelper.GetRefreshToken( req, res ) },
+        { name: 'refreshTokenId', getter: () => TokenHelper.GetRefreshTokenId( req, res ) },
+      ]
 
-      // Create a buffer from the user id, access token, refresh token and refresh token id
-      const userIdBuffer                    = Buffer.from( userId )
-      const deviceIdBuffer                  = Buffer.from( deviceId )
-      const accessTokenBuffer               = Buffer.from( accessToken )
-      const refreshTokenBuffer              = Buffer.from( refreshToken )
-      const refreshTokenIdBuffer            = Buffer.from( refreshTokenId )
+      // Loop through each field and validate it
+      for( const { name, getter } of fields ) {
 
-      // Create a buffer from the session user id, device id, access token, refresh token and refresh token id
-      const sessionUserIdBuffer             = Buffer.from( req.session.userId )
-      const sessionDeviceIdBuffer           = Buffer.from( req.session.deviceId )
-      const sessionAccessTokenBuffer        = Buffer.from( req.session.accessToken )
-      const sessionRefreshTokenBuffer       = Buffer.from( req.session.refreshToken )
-      const sessionRefreshTokenIdBuffer     = Buffer.from( req.session.refreshTokenId )
+        // Get the value using the helper
+        const value                         = getter()
 
-      // If the stored user data does not match the session user data, logout the user
-      if(
-        !crypto.timingSafeEqual( userIdBuffer, sessionUserIdBuffer ) ||
-        !crypto.timingSafeEqual( deviceIdBuffer, sessionDeviceIdBuffer ) ||
-        !crypto.timingSafeEqual( accessTokenBuffer, sessionAccessTokenBuffer ) ||
-        !crypto.timingSafeEqual( refreshTokenBuffer, sessionRefreshTokenBuffer ) ||
-        !crypto.timingSafeEqual( refreshTokenIdBuffer, sessionRefreshTokenIdBuffer )
-      )
-        return AuthController.Logout( req, res, next, true )
+        // Get the corresponding value stored in the session
+        const sessionValue                  = req.session[ name ]
+
+        // If either is missing -> force logout
+        if( !value || !sessionValue )
+          return AuthController.Logout( req, res, next, true )
+
+        // Convert both values to buffers for safe comparison
+        const valueBuffer                   = Buffer.from( String( value ) )
+        const sessionBuffer                 = Buffer.from( String( sessionValue ) )
+
+        // If values don't match (length or content) -> force logout
+        if( valueBuffer.length !== sessionBuffer.length || !crypto.timingSafeEqual( valueBuffer, sessionBuffer ) )
+          return AuthController.Logout( req, res, next, true )
+      }
 
       // Continue to the next middleware or route
       return next()
@@ -176,7 +168,7 @@ class AuthMiddleware {
 
   /**
    * @method AuthMiddleware.ValidateTokens
-   * @description A middleware that checks the validity of the access token and refresh token
+   * @description Validates the integrity of the access and refresh tokens
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
@@ -193,13 +185,25 @@ class AuthMiddleware {
       const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
       const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, refreshToken, 'refresh' )
 
-      // If the tokens are not valid, logout the user
-      if( !decodedAccessToken || !decodedRefreshToken )
+      // If the access token is missing or invalid
+      if( accessToken && !decodedAccessToken )
+        console.log( 'Access token expired or invalid.' )
+
+      // If the refresh token is missing or invalid
+      if( refreshToken && !decodedRefreshToken )
         return AuthController.Logout( req, res, next, true )
 
       // Bind the variables to req and session
-      req.accessToken                       = req.session.accessToken                     = accessToken
-      req.refreshToken                      = req.session.refreshToken                    = refreshToken
+      if( decodedAccessToken ) {
+        req.accessToken                     = req.session.accessToken                     = accessToken
+        req.decodedAccessToken              = decodedAccessToken
+      }
+
+      //
+      if( decodedRefreshToken ) {
+        req.refreshToken                    = req.session.refreshToken                    = refreshToken
+        req.decodedRefreshToken             = decodedRefreshToken
+      }
 
       // Continue to the next middleware or route
       return next()
@@ -280,11 +284,11 @@ class AuthMiddleware {
 
         // If roles is a string, and the user is not the required role
         if( typeof roles === 'string' && roles !== user.role )
-          throw new CustomErrorHelper( req.t('user.unauthorized') )
+          throw new CustomErrorHelper( req.t('user.unauthorized'), StatusCodes.UNAUTHORIZED )
 
         // Else if roles is an array, and the user's role is not in the required roles
         else if( Array.isArray( roles ) && !roles.includes( user.role ) )
-          throw new CustomErrorHelper( req.t('user.unauthorized') )
+          throw new CustomErrorHelper( req.t('user.unauthorized'), StatusCodes.UNAUTHORIZED )
 
         // Continue to the next middleware or route
         return next()
@@ -311,14 +315,14 @@ class AuthMiddleware {
 
       // If the email was not found
       if( !email )
-        throw new CustomErrorHelper( req.t('email.notFound') )
+        throw new CustomErrorHelper( req.t('email.notFound'), StatusCodes.NOT_FOUND )
 
       // Get the user's record, by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user's email is not verified
       if( !user.isEmailVerified )
-        throw new CustomErrorHelper( req.t('email.notVerified') )
+        throw new CustomErrorHelper( req.t('email.notVerified'), StatusCodes.FORBIDDEN )
 
       // Continue to the next middleware or route
       return next()
@@ -344,14 +348,14 @@ class AuthMiddleware {
 
       // If the email was not found
       if( !email )
-        throw new CustomErrorHelper( req.t('email.notFound') )
+        throw new CustomErrorHelper( req.t('email.notFound'), StatusCodes.NOT_FOUND )
 
       // Get the user's record, by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user's account is not active
       if( !user.isActive )
-        throw new CustomErrorHelper( req.t('user.notActive') )
+        throw new CustomErrorHelper( req.t('user.notActive'), StatusCodes.FORBIDDEN )
 
       // Continue to the next middleware or route
       return next()

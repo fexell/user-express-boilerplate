@@ -10,6 +10,10 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : String,
     required                                : true,
   },
+  salt                                      : {
+    type                                    : String,
+    required                                : true,
+  },
   token                                     : {
     type                                    : String,
     required                                : true,
@@ -22,6 +26,11 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : String,
     required                                : true,
   },
+  expiresAt                                 : {
+    type                                    : Date,
+    required                                : true,
+    expires                                 : 0,
+  }
 }, {
   timestamps                                : true,
 })

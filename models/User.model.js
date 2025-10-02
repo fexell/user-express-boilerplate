@@ -21,22 +21,41 @@ const UserSchema                            = new Schema({
     trim                                    : true,
     minlength                               : [ 3, t('username.minlength') ],
     maxlength                               : [ 20, t('username.maxlength') ],
-    match                                   : [ /^[a-zA-Z0-9]+$/, t('username.invalid') ],
+    match                                   : [ /^[a-zåäö0-9_]+$/i, t('username.invalid') ],
     validate                                : {
       validator                             : async function( value ) {
-        const usernameRegex                 = new RegExp( /^[a-zA-Z0-9]+$/, 'i' )
-        const user                          = await this.constructor.findOne({
-          username                          : {
-            $regex                          : usernameRegex,
-          },
-        })
 
-        if(this.isNew && user)
-          throw new ErrorHelper( t('username.taken') )
+        // Escape regex
+        const escapeRegex                   = ( str ) => str.replace( /[.*+?^${}()|[\]\\]/g, '\\$&' )
 
-        else if(!this.isNew && !usernameRegex.test(this.username))
-          throw new ErrorHelper( t('username.taken') )
+        // Reject if username has leading/trailing spaces
+        if( value !== value.trim() )
+          throw new ErrorHelper( t('username.invalidSpaces') )
 
+        // If the user is trying to create a new user
+        if( this.isNew ) {
+
+          // Find a user with the same username
+          const user                        = await this.constructor.findOne({
+            username                        : new RegExp( `^(${ escapeRegex( value ) })$`, 'i' )
+          })
+
+          // If the user already exists, throw an error that the username is taken
+          if( user )
+            throw new ErrorHelper( t('username.taken') )
+
+        // Else if the user is trying to update their username
+        } else if( this.isModified( 'username' ) ) {
+
+          // Find the current user
+          const currentUser                 = await this.constructor.findById( this._id ).lean()
+
+          // If the username is different from the current username (not a different variation), throw an error
+          if( currentUser && currentUser.username.toLowerCase() !== value.toLowerCase() )
+            throw new ErrorHelper( t('username.variation') )
+        }
+
+        // If the username is not taken, or the username is the same as the current username (a different variation), return true
         return true
       }
     }

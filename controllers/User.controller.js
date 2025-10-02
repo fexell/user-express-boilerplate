@@ -4,6 +4,7 @@ import UserModel from '../models/User.model.js'
 
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import ResponseHelper from '../helpers/Response.helper.js'
+import StatusCodes from '../helpers/StatusCodes.helper.js'
 import StringHelper from '../helpers/String.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 
@@ -59,7 +60,7 @@ class UserController {
       await newUser.save()
 
       // Return the new user
-      return ResponseHelper.Success( res, req.t('user.created'), 201, UserModel.SerializeUser( newUser ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.created'), StatusCodes.CREATED, UserModel.SerializeUser( newUser ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -82,10 +83,10 @@ class UserController {
 
       // If the user doesn't exist
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.data.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.data.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -108,17 +109,17 @@ class UserController {
 
       // If the target user id is not found
       if( !userId )
-        throw new CustomErrorHelper( req.t('user.id.notFound') )
+        throw new CustomErrorHelper( req.t('user.id.notFound'), StatusCodes.NOT_FOUND )
 
       // Get/find the user in the database by their id
       const user                            = await UserHelper.GetUserById( req, res, userId, true )
 
       // If the user doesn't exist
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -141,17 +142,17 @@ class UserController {
 
       // If there is no email parameter
       if( !email )
-        throw new CustomErrorHelper( req.t('email.notFound') )
+        throw new CustomErrorHelper( req.t('email.notFound'), StatusCodes.NOT_FOUND )
 
       // Get/find the user in the database by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user doesn't exist
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -174,17 +175,17 @@ class UserController {
 
       // If the username from parameter is not found
       if( !username )
-        throw new CustomErrorHelper( req.t('username.notFound') )
+        throw new CustomErrorHelper( req.t('username.notFound'), StatusCodes.NOT_FOUND )
 
       // Get/find the user in the database by their username
       const user                            = await UserHelper.GetUserByUsername( req, res, username )
 
       // If the user doesn't exist
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the user
-      return ResponseHelper.Success( res, req.t('user.found'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.found'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -210,10 +211,10 @@ class UserController {
 
       // If there are no users
       if( !users.length )
-        throw new CustomErrorHelper( req.t('users.notFound') )
+        throw new CustomErrorHelper( req.t('users.notFound'), StatusCodes.NOT_FOUND )
 
       // Return the users
-      return ResponseHelper.Success( res, req.t('users.found'), 200, users.map( user => UserModel.SerializeUser( user ) ), 'users' )
+      return ResponseHelper.Success( res, req.t('users.found'), StatusCodes.OK, users.map( user => UserModel.SerializeUser( user ) ), 'users' )
 
     } catch ( error ) {
       return next( error )
@@ -262,7 +263,7 @@ class UserController {
       await user.save()
 
       // Return the user, and a success message
-      return ResponseHelper.Success( res, req.t('user.updated'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.updated'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )

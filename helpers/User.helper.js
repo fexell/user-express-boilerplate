@@ -1,12 +1,16 @@
 import crypto from 'crypto'
 import requestIp from 'request-ip'
+import { Mongoose } from 'mongoose'
 
 import UserModel from '../models/User.model.js'
 
+import { DEVICE_ID_SECRET } from '../configs/Environment.config.js'
+
 import CookieHelper, { CookieNames } from './Cookie.helper.js'
+import RegexHelper from './Regex.helper.js'
 import ResponseHelper from './Response.helper.js'
 import TimeHelper from './Time.helper.js'
-import { Mongoose } from 'mongoose'
+import AuthController from '../controllers/Auth.controller.js'
 
 /**
  * @class UserHelper
@@ -25,8 +29,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserId
    * @description Get the user's id from req, session or cookie
-   * @param {Request} req 
-   * @param {Response} res 
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
    * @returns {Mongoose.ObjectId}
    */
   static GetUserId( req, res ) {
@@ -43,8 +47,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserEmail
    * @description Get the user's email
-   * @param {Request} req 
-   * @param {Response} res 
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
    * @returns {String} The user's email
    */
   static async GetUserEmail( req, res ) {
@@ -64,8 +68,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserUsername
    * @description Get the user's username
-   * @param {Request} req 
-   * @param {Response} res 
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
    * @returns {String} The user's username
    */
   static async GetUserUsername( req, res ) {
@@ -85,8 +89,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetIpAddress
    * @description Get the user's ip address
-   * @param {Request} req 
-   * @param {Response} res 
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
    * @returns {String} The user's ip address
    */
   static GetIpAddress( req, res ) {
@@ -103,8 +107,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserAgent
    * @description Get the user's user agent / browser information
-   * @param {Request} req 
-   * @param {Response} res 
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
    * @returns {String} The user's user agent
    */
   static GetUserAgent( req, res ) {
@@ -121,34 +125,40 @@ class UserHelper {
   /**
    * @method UserHelper.GenerateDeviceId
    * @description Generates unique device id
-   * @param {Request} req 
-   * @param {Reponse} res 
+   * @param {Request} req Express request object
+   * @param {Reponse} res Express response object
    * @param {Mongoose.ObjectId} uid 
    * @returns {String} The hashed device id
    */
-  static GenerateDeviceId( req, res, uid ) {
+  static GenerateDeviceId( req, res, uid, forceNew = false ) {
     try {
+      let salt
+
       // Get the user's id, from either parameter, or req, session, or cookie
-      const userId                            = uid || this.GetUserId( req, res )
+      const userId                          = uid || this.GetUserId( req, res )
 
-      // Get the user's ip address
-      const ipAddress                         = this.GetIpAddress( req, res )
+      // Get the device id
+      let deviceId                          = !forceNew ? this.GetDeviceId( req, res ) : null
 
-      // Get the user agent
-      const userAgent                         = this.GetUserAgent( req, res )
+      // If no device id could be found
+      if( !deviceId ) {
+        salt                                = crypto.randomBytes( 16 ).toString( 'hex' )
 
-      // Generate the device id
-      const data                              = `${ userId }:${ ipAddress }:${ userAgent }`
-      const hash                              = crypto.createHash( 'sha256' ).update( data ).digest( 'hex' )
+        // Generate the device id
+        const data                          = `${ userId }:${ salt }`
 
-      // Store the device id in a cookie
-      CookieHelper.SetDeviceIdCookie( res, hash )
+        // Set the device id to the hash
+        deviceId                            = crypto.createHmac( 'sha256', DEVICE_ID_SECRET ).update( data ).digest( 'hex' )
 
-      // Store the device id in req, and session
-      req.deviceId                            = req.session.deviceId                        = hash
+        // Store the device id in a cookie
+        CookieHelper.SetDeviceIdCookie( res, deviceId )
+      }
+
+      // Store in request and session for easy access
+      req.deviceId                            = req.session.deviceId                        = deviceId
 
       // Return the hashed device id
-      return hash
+      return { deviceId, salt }
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
@@ -158,8 +168,8 @@ class UserHelper {
   /**
    * @method UserHelper.GetDeviceId
    * @description Get the user's device id
-   * @param {Request} req 
-   * @param {Response} res 
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
    * @returns {String} The user's device id, from req, session or cookie
    */
   static GetDeviceId( req, res ) {
@@ -170,6 +180,49 @@ class UserHelper {
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
+    }
+  }
+
+  /**
+   * @method UserHelper.ValidateDeviceId
+   * @description Validates whether the provided device ID matches the expected one
+   * @param {Request} req Express request object
+   * @param {Response} res Express response object
+   * @param {Object} refreshTokenRecord The database record for the refresh token
+   * @returns {Boolean} True if the device ID matches the expected value, false otherwise
+   */
+  static ValidateDeviceId( req, res, refreshTokenRecord ) {
+    try {
+
+      // Retrieve the device ID that was stored in the client
+      const deviceId                        = this.GetDeviceId( req, res )
+
+      // If no device id is provided OR the refresh token record is missing its salt,
+      // we cannot validate the device -> reject immediately
+      if( !deviceId || !refreshTokenRecord?.salt )
+        return false
+
+      // Recreate what the device ID *should* be
+      const expectedDeviceId                = crypto
+        .createHmac( 'sha256', DEVICE_ID_SECRET )
+        .update( `${ refreshTokenRecord.userId }:${ refreshTokenRecord.salt }` )
+        .digest( 'hex' )
+
+      // Convert both the provided deviceId and the expected one into Buffers
+      const deviceIdBuffer                  = Buffer.from( deviceId )
+      const expectedBuffer                  = Buffer.from( expectedDeviceId )
+
+      // If the buffer lengths differ, they cannot be equal
+      if( deviceIdBuffer.length !== expectedBuffer.length )
+        return false
+
+      // Compare the two buffers in constant time to protect against timing attacks
+      return crypto.timingSafeEqual( deviceIdBuffer, expectedBuffer )
+
+    } catch( error ) {
+
+      // If anything goes wrong -> fail safely
+      return false
     }
   }
 
@@ -226,18 +279,26 @@ class UserHelper {
   /**
    * @method UserHelper.GetUserByUsername
    * @description Get/retrieve the user's record from MongoDB by username
-   * @param {Response} res 
-   * @param {String} username 
-   * @param {Boolean} lean 
+   * @param {Response} res Express response object
+   * @param {String} username The targeted username
+   * @param {Boolean} lean Whether the database findOne should be lean
    * @returns {Mongoose.Document} The user's record, by username
    */
   static async GetUserByUsername( req, res, username, lean = false ) {
     try {
 
+      // If no username is provided, get the user's username
+      const input                           = username || await this.GetUserUsername( req, res )
+
+      // Case-insensitive exact match
+      const usernameRegex                   = new RegExp( `^(${ RegexHelper.Escape( input ) })$`, 'i' )
+
       // Attempt to find the user by username
+      const query                           = { username: { $regex: usernameRegex } }
+
       return !lean
-        ? await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } )
-        : await UserModel.findOne( { username: username || await this.GetUserUsername( req, res ) } ).lean()
+        ? await UserModel.findOne( query )
+        : await UserModel.findOne( query ).lean()
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )

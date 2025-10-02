@@ -36,7 +36,7 @@ AuthRouter.post( '/login', [
  */
 AuthRouter.post( '/logout', [
   AuthMiddleware.Authenticate,
-  AuthMiddleware.DataCheck,
+  AuthMiddleware.VerifySessionData,
   AuthMiddleware.AlreadyLoggedOut,
 ], AuthController.Logout )
 
@@ -57,7 +57,7 @@ AuthRouter.put( '/verify/email/:token', [
 AuthRouter.get( '/find/units', [
   AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
-  AuthMiddleware.DataCheck,
+  AuthMiddleware.VerifySessionData,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -66,7 +66,7 @@ AuthRouter.get( '/find/units', [
 AuthRouter.put( '/unit/revoke/all', [
   AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
-  AuthMiddleware.DataCheck,
+  AuthMiddleware.VerifySessionData,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -75,7 +75,7 @@ AuthRouter.put( '/unit/revoke/all', [
 AuthRouter.put( '/unit/revoke/:tokenId', [
   AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
-  AuthMiddleware.DataCheck,
+  AuthMiddleware.VerifySessionData,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,
@@ -84,7 +84,7 @@ AuthRouter.put( '/unit/revoke/:tokenId', [
 AuthRouter.put( '/tokens/refresh', [
   AuthMiddleware.ValidateTokens,
   AuthMiddleware.Authenticate,
-  AuthMiddleware.DataCheck,
+  AuthMiddleware.VerifySessionData,
   AuthMiddleware.RefreshTokenRevoked,
   AuthMiddleware.EmailVerified,
   AuthMiddleware.AccountInactive,

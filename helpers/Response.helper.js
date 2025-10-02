@@ -1,5 +1,7 @@
 
 
+import StatusCodes from './StatusCodes.helper.js'
+
 /**
  * @class ResponseHelper
  * @classdesc Contains all methods related to responses
@@ -18,7 +20,7 @@ class ResponseHelper {
    * @param {String} key The key name for the data
    * @returns {Response} Express response
    */
-  static Success( res, message, status = 200, data, key = 'data' ) {
+  static Success( res, message, status = StatusCodes.OK, data, key = 'data' ) {
     try {
 
       // Returns a success response, with a message, status, and/or data
@@ -42,7 +44,7 @@ class ResponseHelper {
    * @param {Number} status HTTP status code
    * @returns {Response} Express response
    */
-  static Error( res, message, status = 400 ) {
+  static Error( res, message, status = StatusCodes.BAD_REQUEST ) {
     try {
 
       // Returns an error response, with a message and status

@@ -8,6 +8,7 @@ import CustomErrorHelper from '../helpers/Error.helper.js'
 import PasswordHelper from '../helpers/Password.helper.js'
 import ResponseHelper from '../helpers/Response.helper.js'
 import SessionHelper from '../helpers/Session.helper.js'
+import StatusCodes from '../helpers/StatusCodes.helper.js'
 import UserHelper from '../helpers/User.helper.js'
 import TokenHelper from '../helpers/Token.helper.js'
 
@@ -53,7 +54,7 @@ class AuthController {
 
       // If the user was not found
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // If the password is incorrect
       if( !await PasswordHelper.Verify( user.password, password ) )
@@ -64,9 +65,6 @@ class AuthController {
 
       // Generate a new access token
       const accessToken                     = TokenHelper.GenerateNewAccessToken( req, res, user._id, jwtId )
-
-      // Sign a new refresh token
-      const refreshToken                    = TokenHelper.SignRefreshToken( user._id )
 
       // Generate a new refresh token record
       const newRefreshTokenRecord           = await TokenHelper.GenerateNewRefreshToken(
@@ -87,7 +85,7 @@ class AuthController {
       req.refreshTokenId                    = req.session.refreshTokenId                  = newRefreshTokenRecord._id
 
       // Return the success response
-      return ResponseHelper.Success( res, req.t('user.login.success'), 200, UserModel.SerializeUser( user ), 'user' )
+      return ResponseHelper.Success( res, req.t('user.login.success'), StatusCodes.OK, UserModel.SerializeUser( user ), 'user' )
 
     } catch ( error ) {
       return next( error )
@@ -154,18 +152,18 @@ class AuthController {
 
       // If the email verification token was not found
       if( !emailVerificationToken )
-        throw new CustomErrorHelper( req.t('email.token.notFound') )
+        throw new CustomErrorHelper( req.t('email.token.notFound'), StatusCodes.NOT_FOUND )
 
       // If the email was not found
       else if( !email )
-        throw new CustomErrorHelper( req.t('email.query.notFound') )
+        throw new CustomErrorHelper( req.t('email.query.notFound'), StatusCodes.NOT_FOUND )
 
       // Attempt to find the user by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
       // If the user was not found
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // If the user's email is already verified
       else if( user.isEmailVerified )
@@ -202,7 +200,7 @@ class AuthController {
 
       // If the user id was not found
       if( !userId )
-        throw new CustomErrorHelper( req.t('user.id.notFound') )
+        throw new CustomErrorHelper( req.t('user.id.notFound'), StatusCodes.NOT_FOUND )
 
       // Sort by whatever the user wants (from query) or sort by createdAt
       const sort                            = req.query.sort || '-createdAt'
@@ -211,7 +209,7 @@ class AuthController {
       const units                           = await RefreshTokenModel.find( { userId: userId } ).sort( sort ).lean()
 
       // Return the success response
-      return ResponseHelper.Success( res, req.t('user.units.found'), 200, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
+      return ResponseHelper.Success( res, req.t('user.units.found'), StatusCodes.OK, units.map( unit => RefreshTokenModel.SerializeRefreshToken( unit ) ), 'units' )
 
     } catch ( error ) {
       return next( error )
@@ -232,14 +230,14 @@ class AuthController {
 
       // If the refresh token id was not found
       if( !refreshTokenId )
-        throw new CustomErrorHelper( req.t('refreshToken.id.notFound') )
+        throw new CustomErrorHelper( req.t('refreshToken.id.notFound'), StatusCodes.NOT_FOUND )
 
       // Attempt to find the refresh token record
       const refreshTokenRecord              = await RefreshTokenModel.findOne({ _id: refreshTokenId })
 
       // If the refresh token record was not found
       if( !refreshTokenRecord )
-        throw new CustomErrorHelper( req.t('refreshTokenRecord.notFound') )
+        throw new CustomErrorHelper( req.t('refreshTokenRecord.notFound'), StatusCodes.NOT_FOUND )
 
       // Revoke the targeted refresh token
       await TokenHelper.RevokeRefreshToken( req, res, 'Refresh token revoked by user', refreshTokenRecord.deviceId )
@@ -252,6 +250,14 @@ class AuthController {
     }
   }
 
+  /**
+   * @method AuthController.RevokeAllRefreshTokens
+   * @description The controller method handling revoking all refresh tokens of a user
+   * @param {Request} req 
+   * @param {Response} res 
+   * @param {NextFunction} next 
+   * @returns Success response
+   */
   static async RevokeAllRefreshTokens( req, res, next ) {
     try {
       await TokenHelper.RevokeRefreshToken( req, res, 'All refresh tokens revoked', null, UserHelper.GetUserId( req, res ) )
@@ -306,7 +312,7 @@ class AuthController {
 
       // If the user was not found
       if( !user )
-        throw new CustomErrorHelper( req.t('user.notFound') )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
       // Hash the new password, and set it to the user
       user.password                         = await PasswordHelper.Hash( newPassword )

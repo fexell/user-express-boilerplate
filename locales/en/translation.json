@@ -34,6 +34,8 @@
   "username.taken": "Username is already taken.",
   "username.minlength": "Username must be at least 3 characters long.",
   "username.maxlength": "Username must be at most 20 characters long.",
+  "username.variation": "Username can only be a different variation of your current username.",
+  "username.invalidSpaces": "Username cannot have leading or trailing spaces.",
 
   "forename.required": "Forename is required.",
   "forename.invalid": "Forename is invalid.",

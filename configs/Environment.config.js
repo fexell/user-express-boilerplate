@@ -9,6 +9,7 @@ const {
   SESSION_SECRET,
   COOKIE_SECRET,
   CSRF_SECRET,
+  DEVICE_ID_SECRET,
   MONGO_URI,
 }                                           = process.env
 
@@ -23,5 +24,6 @@ export {
   SESSION_SECRET,
   COOKIE_SECRET,
   CSRF_SECRET,
+  DEVICE_ID_SECRET,
   DbString as MONGO_URI,
 }

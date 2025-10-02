@@ -10,6 +10,7 @@ class SessionHelper {
 
   /**
    * @method SessionHelper.ClearAllSessions
+   * @description Clears all the session variables
    * @param {Request} req 
    * @returns {void}
    */
@@ -21,6 +22,7 @@ class SessionHelper {
       delete req.session.accessToken
       delete req.session.refreshToken
       delete req.session.refreshTokenId
+      delete req.session.deviceId
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )

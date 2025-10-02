@@ -7,11 +7,11 @@ import TimeHelper from './Time.helper.js'
 import ResponseHelper from './Response.helper.js'
 
 /**
- * @constant CookieNames - Cookie Names
+ * @constant CookieNames Cookie Names
  * @type {Object}
- * @property {String} REFRESH_TOKEN - Refresh Token Cookie Name
- * @property {String} ACCESS_TOKEN - Access Token Cookie Name
- * @property {String} USER_ID - User Id Cookie Name
+ * @property {String} REFRESH_TOKEN Refresh Token Cookie Name
+ * @property {String} ACCESS_TOKEN Access Token Cookie Name
+ * @property {String} USER_ID User Id Cookie Name
  */
 const CookieNames                           = {
   USER_ID                                   : 'userId',
@@ -22,20 +22,20 @@ const CookieNames                           = {
 }
 
 /**
- * @class CookieHelper - Cookie Helper Class
+ * @class CookieHelper
  * @classdesc Contains all methods related to cookies
  * 
- * @method CookieHelper.CookieOptions - "Normal cookie" options
- * @method CookieHelper.SignedHttpOnlyCookieOptions - "Signed http only cookie" options
- * @method CookieHelper.SetCookie - Set "a normal cookie" method
- * @method CookieHelper.SetSignedHttpOnlyCookie - Set "a signed http only cookie" method
- * @method CookieHelper.SetUserIdCookie - Set User Id Cookie method
- * @method CookieHelper.GetUserIdCookie - Get User Id Cookie method
- * @method CookieHelper.SetAccessTokenCookie - Set Access Token Cookie method
- * @method CookieHelper.GetAccessTokenCookie - Get Access Token Cookie method
- * @method CookieHelper.SetRefreshTokenIdCookie - Set Refresh Token Id Cookie method
- * @method CookieHelper.GetRefreshTokenIdCookie - Get Refresh Token Id Cookie method
- * @method CookieHelper.ClearCookie - Clear Cookie method
+ * @method CookieHelper.CookieOptions "Normal" cookie options
+ * @method CookieHelper.SignedHttpOnlyCookieOptions "Signed http only cookie" options
+ * @method CookieHelper.SetCookie Set "a normal cookie" method
+ * @method CookieHelper.SetSignedHttpOnlyCookie Set "a signed http only cookie" method
+ * @method CookieHelper.SetUserIdCookie Set User Id Cookie method
+ * @method CookieHelper.GetUserIdCookie Get User Id Cookie method
+ * @method CookieHelper.SetAccessTokenCookie Set Access Token Cookie method
+ * @method CookieHelper.GetAccessTokenCookie Get Access Token Cookie method
+ * @method CookieHelper.SetRefreshTokenIdCookie Set Refresh Token Id Cookie method
+ * @method CookieHelper.GetRefreshTokenIdCookie Get Refresh Token Id Cookie method
+ * @method CookieHelper.ClearCookie Clear Cookie method
  */
 class CookieHelper {
 
@@ -153,7 +153,7 @@ class CookieHelper {
    */
   static SetAccessTokenCookie( res, accessToken ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FiveSeconds )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FifteenMinutes )
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
     }
