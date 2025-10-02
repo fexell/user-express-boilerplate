@@ -98,13 +98,13 @@ class AuthMiddleware {
           jwtId,
         }                                   = await UserHelper.WithUserLock( userId, async () => {
           // Generate new JWT ID
-          const jwtId                         = uuidv4()
+          const jwtId                       = uuidv4()
 
           // Generate a new refresh token record
-          const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, 'Authenticate' )
+          const newRefreshTokenRecord       = await TokenHelper.GenerateNewRefreshToken( req, res, 'Authenticate' )
 
           // Generate a new access token
-          const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
+          const newAccessToken              = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
 
           // Return the new access token, refresh token record, and jwt id
           return { newAccessToken, newRefreshTokenRecord, jwtId }
