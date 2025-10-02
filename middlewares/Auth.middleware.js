@@ -62,7 +62,9 @@ class AuthMiddleware {
         throw new CustomErrorHelper( req.t('route.protected') )
 
       // Validate the access token
-      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
+      const decodedAccessToken              = await TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
+
+      console.log(decodedAccessToken)
 
       // If the access token is valid, return the next middleware
       if( decodedAccessToken ) {
@@ -188,8 +190,8 @@ class AuthMiddleware {
       const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
 
       // Validate and decode the access token and refresh token
-      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, accessToken, 'access' )
-      const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, refreshToken, 'refresh' )
+      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
+      const decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, refreshToken, 'refresh' )
 
       // If the tokens are not valid, logout the user
       if( !decodedAccessToken || !decodedRefreshToken )

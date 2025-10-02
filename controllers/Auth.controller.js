@@ -29,7 +29,7 @@ class AuthController {
    * @param {Request} req 
    * @param {Response} res 
    * @param {NextFunction} next 
-   * @returns Success response
+   * @returns {User} The user's details
    */
   static async Login( req, res, next ) {
     try {
@@ -101,7 +101,7 @@ class AuthController {
    * @param {Response} res 
    * @param {NextFunction} next 
    * @param {Boolean} forced 
-   * @returns Success response
+   * @returns {Response}
    */
   static async Logout( req, res, next, forced = false ) {
     try {
@@ -324,12 +324,18 @@ class AuthController {
 
   static async RefreshTokens( req, res, next ) {
     try {
+
+      // Create a new jwt id
       const jwtId                           = uuidv4()
+
+      // Get the user id
       const userId                          = UserHelper.GetUserId( req, res )
 
+      // Generate new access and refresh tokens
       await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
       await TokenHelper.GenerateNewRefreshToken( req, res, 'RefreshTokens' )
 
+      // Return the success response
       return ResponseHelper.Success( res, req.t('tokens.refreshed') )
 
     } catch ( error ) {

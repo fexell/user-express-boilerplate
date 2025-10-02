@@ -206,7 +206,7 @@ class UserController {
       const sort                            = req.query.sort || '-createdAt'
 
       // Find all users, sorted
-      const users                           = await UserModel.find().sort(sort).lean()
+      const users                           = await UserModel.find().sort( sort ).lean()
 
       // If there are no users
       if( !users.length )

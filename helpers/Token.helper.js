@@ -22,7 +22,7 @@ import { mongo } from 'mongoose'
  * @property {String} REFRESH_TOKEN - Refresh Token Expiration Time (30 days)
  */
 const ExpirationTime                        = {
-  ACCESS_TOKEN                              : JWT_ACCESS_TOKEN_EXPIRATION || '15m', // 3 minutes
+  ACCESS_TOKEN                              : '5s' || '15m', // 3 minutes
   REFRESH_TOKEN                             : JWT_REFRESH_TOKEN_EXPIRATION || '30d', // 30 days
 }
 
@@ -82,7 +82,7 @@ class TokenHelper {
       return jwt.sign( payload, { key: PRIVATE_KEY, passphrase: JWT_SECRET }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -100,7 +100,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -117,7 +117,7 @@ class TokenHelper {
       return this.Sign( { userId: payload }, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -129,14 +129,14 @@ class TokenHelper {
    * @param {String} jwtId 
    * @returns {Object} The verified JWT, and its payload
    */
-  static VerifyToken( token, expiresIn, jwtId ) {
+  static async VerifyToken( token, expiresIn, jwtId ) {
     try {
 
       // Verify the JWT
-      return jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
+      return await jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -149,14 +149,14 @@ class TokenHelper {
    * @param {String} jwtId 
    * @returns {Object} The verified Access Token
    */
-  static VerifyAccessToken( token, jwtId ) {
+  static async VerifyAccessToken( token, jwtId ) {
     try {
 
       // Verify the Access Token
-      return this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
+      return await this.VerifyToken( token, ExpirationTime.ACCESS_TOKEN, jwtId )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -174,7 +174,7 @@ class TokenHelper {
       return req.accessToken || req.session.accessToken || CookieHelper.GetAccessTokenCookie( req, res )
       
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -206,7 +206,7 @@ class TokenHelper {
       return accessToken
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -218,14 +218,14 @@ class TokenHelper {
    * @param {String} token 
    * @returns {Object} The verified/decoded Refresh Token
    */
-  static VerifyRefreshToken( token ) {
+  static async VerifyRefreshToken( token ) {
     try {
 
       // Verify the Refresh Token
-      return this.VerifyToken( token, ExpirationTime.REFRESH_TOKEN )
+      return await this.VerifyToken( token, ExpirationTime.REFRESH_TOKEN )
 
     } catch ( error ) {
-      throw ResponseHelper.CatchError( res, error )
+      throw console.error( error )
     }
   }
 
@@ -243,7 +243,7 @@ class TokenHelper {
       return req.refreshToken || req.session.refreshToken || CookieHelper.GetRefreshTokenCookie( req, res )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -261,7 +261,7 @@ class TokenHelper {
       return req.refreshTokenId || req.session.refreshTokenId || CookieHelper.GetRefreshTokenIdCookie( req, res )
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -305,7 +305,7 @@ class TokenHelper {
       return newRefreshTokenRecord
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -338,7 +338,7 @@ class TokenHelper {
       return refreshTokenRecord
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -370,7 +370,7 @@ class TokenHelper {
       return refreshTokenRecords
 
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -409,7 +409,7 @@ class TokenHelper {
       for( const tokenRecord of refreshTokens ) {
 
         // Decode the refresh token
-        const decoded                       = this.ValidateAndDecodeToken( req, tokenRecord.token, 'refresh' )
+        const decoded                       = await this.ValidateAndDecodeToken( req, res, tokenRecord.token, 'refresh' )
 
         // If the refresh token is not valid, continue
         if( !decoded )
@@ -444,7 +444,7 @@ class TokenHelper {
       }
       
     } catch ( error ) {
-      return ResponseHelper.CatchError( res, error )
+      return console.error( error )
     }
   }
 
@@ -456,13 +456,13 @@ class TokenHelper {
    * @param {String} type 
    * @returns 
    */
-  static ValidateAndDecodeToken( req, token, type ) {
+  static async ValidateAndDecodeToken( req, token, type ) {
     try {
 
       // Depending on the type, validate and decode the token
       const decodedToken                    = type === 'access'
-        ? this.VerifyAccessToken( token, req.jwtId || req.session.jwtId )
-        : this.VerifyRefreshToken( token )
+        ? await this.VerifyAccessToken( token, req.jwtId || req.session.jwtId )
+        : await this.VerifyRefreshToken( token )
 
       // If the token is not valid, return null
       if( !decodedToken || !decodedToken.userId )

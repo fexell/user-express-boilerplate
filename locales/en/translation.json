@@ -49,6 +49,8 @@
   "password.minlength": "Password must be at least 6 characters long.",
   "password.maxlength": "Password must be at most 64 characters long.",
 
+  "tokens.refreshed": "Tokens refreshed.",
+
   "accessToken.invalid": "Access token is invalid.",
 
   "refreshToken.notFound": "Refresh token not found.",

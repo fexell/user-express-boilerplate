@@ -153,7 +153,7 @@ class CookieHelper {
    */
   static SetAccessTokenCookie( res, accessToken ) {
     try {
-      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FiteenMinutes )
+      return this.SetSignedHttpOnlyCookie( res, CookieNames.ACCESS_TOKEN, accessToken, TimeHelper.FiveSeconds )
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )
     }
@@ -230,7 +230,7 @@ class CookieHelper {
    */
   static GetRefreshTokenIdCookie( req, res ) {
     try {
-      if( req.signedCookies.refreshToken && !mongoose.isValidObjectId(req.signedCookies.refreshToken) )
+      if( req.signedCookies.refreshToken && !mongoose.isValidObjectId( req.signedCookies.refreshToken ) )
         throw new CustomErrorHelper( req.t( 'refreshTokenId.invalid' ) )
 
       return req.signedCookies.refreshTokenId || null
