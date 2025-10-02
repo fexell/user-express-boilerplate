@@ -12,6 +12,8 @@ import ResponseHelper from './Response.helper.js'
 import TimeHelper from './Time.helper.js'
 import AuthController from '../controllers/Auth.controller.js'
 
+const refreshLocks                          = new Map()
+
 /**
  * @class UserHelper
  * @classdesc Contains all methods related to the user or users
@@ -224,6 +226,30 @@ class UserHelper {
       // If anything goes wrong -> fail safely
       return false
     }
+  }
+
+  /**
+   * @method UserHelper.WithUserLock
+   * @description Acquires a lock on the given user ID and executes the given function, handling race conditions
+   * @param {mongoose.ObjectId} userId The user's id
+   * @param {Function} fn The function to execute while holding the lock
+   * @returns {Promise} A promise that resolves after the lock has been released
+   */
+  static async WithUserLock( userId, fn ) {
+
+    // If the user is already locked, return the existing promise
+    if( refreshLocks.has( userId ) ) {
+      return refreshLocks.get( userId )
+    }
+
+    // Otherwise, acquire the lock
+    const refreshPromise                    = fn().finally( () => refreshLocks.delete( userId ) )
+
+    // Add the promise to the map
+    refreshLocks.set( userId, refreshPromise )
+
+    // Return the promise
+    return refreshPromise
   }
 
   /**

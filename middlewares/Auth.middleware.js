@@ -90,14 +90,25 @@ class AuthMiddleware {
         if( !refreshTokenRecord || !UserHelper.ValidateDeviceId( req, res, refreshTokenRecord ) )
           return AuthController.Logout( req, res, next, true )
 
-        // Generate new JWT ID
-        const jwtId                         = uuidv4()
+        // Generate new access token, refresh token record, and jwt id, with help of WithUserLock
+        // @see helpers/User.helper.js
+        const {
+          newAccessToken,
+          newRefreshTokenRecord,
+          jwtId,
+        }                                   = await UserHelper.WithUserLock( userId, async () => {
+          // Generate new JWT ID
+          const jwtId                         = uuidv4()
 
-        // Generate a new refresh token record
-        const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, 'Authenticate' )
+          // Generate a new refresh token record
+          const newRefreshTokenRecord         = await TokenHelper.GenerateNewRefreshToken( req, res, 'Authenticate' )
 
-        // Generate a new access token
-        const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
+          // Generate a new access token
+          const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
+
+          // Return the new access token, refresh token record, and jwt id
+          return { newAccessToken, newRefreshTokenRecord, jwtId }
+        })
 
         // Bind the variables to request and session
         req.jwtId                           = req.session.jwtId                           = jwtId

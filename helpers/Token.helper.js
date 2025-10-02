@@ -481,12 +481,13 @@ class TokenHelper {
   }
 
   /**
+   * @async
    * @method TokenHelper.ValidateAndDecodeToken
    * @description Method for validating and decoding a token
    * @param {Request} req 
    * @param {String} token 
    * @param {String} type 
-   * @returns 
+   * @returns {Promise<Object>} The decoded token
    */
   static async ValidateAndDecodeToken( req, res, token, type ) {
     try {
