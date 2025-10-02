@@ -12,6 +12,7 @@ import ResponseHelper from './Response.helper.js'
 import TimeHelper from './Time.helper.js'
 import AuthController from '../controllers/Auth.controller.js'
 
+// Map to hold refresh token locks
 const refreshLocks                          = new Map()
 
 /**

@@ -364,6 +364,35 @@ class TokenHelper {
         ? await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken })
         : await RefreshTokenModel.findOne({ _id: refreshTokenId, userId: userId, deviceId: UserHelper.GetDeviceId( req, res ), token: refreshToken }).lean()
 
+      // If the refresh token record was not found
+      if( !refreshTokenRecord )
+        return null
+
+      // Check if the refresh token is blacklisted
+      const blacklisted                     = await TokenBlacklistModel.findOne({ token: refreshToken })
+
+      // If the refresh token is blacklisted
+      if( blacklisted ) {
+
+        // If the refresh token is valid within the grace period
+        if( blacklisted.graceUntil && Date.now() <= blacklisted.graceUntil.getTime() )
+          return refreshTokenRecord
+
+        // Return null if it is not within the grace period
+        return null
+      }
+
+      // If the refresh token is revoked...
+      if( refreshTokenRecord.revoked ) {
+
+        // ...but if it is valid within the grace period
+        if( refreshTokenRecord.graceUntil && Date.now() <= refreshTokenRecord.graceUntil.getTime() )
+          return refreshTokenRecord
+
+        // Return null if it is not within the grace period
+        return null
+      }
+
       // Return the refresh token record
       return refreshTokenRecord
 

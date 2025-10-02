@@ -30,7 +30,12 @@ const RefreshTokenSchema                    = new Schema({
     type                                    : Date,
     required                                : true,
     expires                                 : 0,
-  }
+  },
+  rotatedAt                                 : {
+    type                                    : Date,
+    required                                : true,
+    default                                 : new Date(),
+  },
 }, {
   timestamps                                : true,
 })

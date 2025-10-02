@@ -34,6 +34,11 @@ const TokenBlacklistSchema                  = new Schema({
     type                                    : Date,
     expires                                 : 0,
   },
+  graceUntil                                : {
+    type                                    : Date,
+    required                                : true,
+    default                                 : () => new Date( Date.now() + 60 * 1000 ),
+  },
   meta                                      : {
     type                                    : Object || JSON,
   },
