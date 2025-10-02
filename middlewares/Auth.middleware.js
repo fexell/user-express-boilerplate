@@ -87,7 +87,7 @@ class AuthMiddleware {
         const refreshTokenRecord            = await TokenHelper.GetRefreshTokenRecord( req, res )
 
         // If the refresh token is not found, logout the user
-        if( !refreshTokenRecord || UserHelper.ValidateDeviceId( req, res, refreshTokenRecord ) )
+        if( !refreshTokenRecord || !UserHelper.ValidateDeviceId( req, res, refreshTokenRecord ) )
           return AuthController.Logout( req, res, next, true )
 
         // Generate new JWT ID

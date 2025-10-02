@@ -28,8 +28,8 @@ class ErrorMiddleware {
       return ResponseHelper.Error( res, Object.values( error.errors )[ 0 ].message, 400 ) // Handle one error at a time
 
     // If in development mode, console log the error
-    /* if( NODE_ENV === 'development' )
-      console.error( error ) */
+    if( NODE_ENV === 'development' )
+      console.error( error )
 
     // Return the error
     return ResponseHelper.Error( res, error.message, error.status )

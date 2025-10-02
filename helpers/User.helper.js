@@ -209,8 +209,8 @@ class UserHelper {
         .digest( 'hex' )
 
       // Convert both the provided deviceId and the expected one into Buffers
-      const deviceIdBuffer                  = Buffer.from( deviceId, 'utf-8' )
-      const expectedBuffer                  = Buffer.from( expectedDeviceId, 'utf-8' )
+      const deviceIdBuffer                  = Buffer.from( deviceId )
+      const expectedBuffer                  = Buffer.from( expectedDeviceId )
 
       // If the buffer lengths differ, they cannot be equal
       if( deviceIdBuffer.length !== expectedBuffer.length )
