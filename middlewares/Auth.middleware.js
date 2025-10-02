@@ -63,7 +63,7 @@ class AuthMiddleware {
         throw new CustomErrorHelper( req.t('route.protected'), StatusCodes.UNAUTHORIZED )
 
       // Validate the access token
-      const decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
+      const decodedAccessToken              = await TokenHelper.ValidateAndDecodeToken( req, res, accessToken, 'access' )
 
       // If the access token is valid, return the next middleware
       if( decodedAccessToken ) {
@@ -99,14 +99,14 @@ class AuthMiddleware {
         // Generate a new access token
         const newAccessToken                = await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )
 
-        // Bind the variables to req and session
+        // Bind the variables to request and session
         req.jwtId                           = req.session.jwtId                           = jwtId
         req.userId                          = req.session.userId                          = userId
         req.accessToken                     = req.session.accessToken                     = newAccessToken
         req.refreshToken                    = req.session.refreshToken                    = newRefreshTokenRecord.token
         req.refreshTokenId                  = req.session.refreshTokenId                  = newRefreshTokenRecord._id
-        req.decodedAccessToken              = TokenHelper.ValidateAndDecodeToken( req, res, newAccessToken, 'access' )
-        req.decodedRefreshToken             = TokenHelper.ValidateAndDecodeToken( req, res, newRefreshTokenRecord.token, 'refresh' )
+        req.decodedAccessToken              = await TokenHelper.ValidateAndDecodeToken( req, res, newAccessToken, 'access' )
+        req.decodedRefreshToken             = await TokenHelper.ValidateAndDecodeToken( req, res, newRefreshTokenRecord.token, 'refresh' )
 
         // Continue to the next middleware or route
         return next()

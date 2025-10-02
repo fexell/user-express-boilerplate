@@ -139,7 +139,10 @@ class TokenHelper {
       return await jwt.verify( token, { key: PUBLIC_KEY }, this.Options( expiresIn, jwtId ) )
 
     } catch ( error ) {
-      throw new CustomErrorHelper( error.message, StatusCodes.INTERNAL_SERVER_ERROR )
+      if( error.name === 'TokenExpiredError' )
+        throw new CustomErrorHelper( 'Token expired', StatusCodes.UNAUTHORIZED )
+
+      throw new CustomErrorHelper( 'Invalid token', StatusCodes.UNAUTHORIZED )
     }
   }
 
@@ -485,13 +488,13 @@ class TokenHelper {
    * @param {String} type 
    * @returns 
    */
-  static ValidateAndDecodeToken( req, res, token, type ) {
+  static async ValidateAndDecodeToken( req, res, token, type ) {
     try {
 
       // Depending on the type, validate and decode the token
       const decodedToken                    = type === 'access'
-        ? this.VerifyAccessToken( token, req.session.jwtId || null )
-        : this.VerifyRefreshToken( token )
+        ? await this.VerifyAccessToken( token, req.session.jwtId || null )
+        : await this.VerifyRefreshToken( token )
 
       // If the token is not valid, return null
       if( !decodedToken || ( type === 'access' && !decodedToken.userId ) )
