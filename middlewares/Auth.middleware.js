@@ -90,8 +90,10 @@ class AuthMiddleware {
         if( !refreshTokenRecord || !UserHelper.ValidateDeviceId( req, res, refreshTokenRecord ) )
           return AuthController.Logout( req, res, next, true )
 
-        // Generate new access token, refresh token record, and jwt id, with help of WithUserLock
-        // @see helpers/User.helper.js
+        /**
+         * Generate new access token, refresh token record, and jwt id, with help of WithUserLock
+         * @see UserHelper.WithUserLock
+         */
         const {
           newAccessToken,
           newRefreshTokenRecord,

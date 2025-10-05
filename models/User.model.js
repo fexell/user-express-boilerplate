@@ -37,7 +37,9 @@ const UserSchema                            = new Schema({
 
           // Find a user with the same username
           const user                        = await this.constructor.findOne({
-            username                        : new RegExp( `^(${ escapeRegex( value ) })$`, 'i' )
+            username                        : {
+              $regex                        : new RegExp( `^(${ escapeRegex( value ) })$`, 'i' ),
+            },
           })
 
           // If the user already exists, throw an error that the username is taken
