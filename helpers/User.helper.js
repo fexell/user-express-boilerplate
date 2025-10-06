@@ -147,7 +147,7 @@ class UserHelper {
       if( !deviceId ) {
         salt                                = crypto.randomBytes( 16 ).toString( 'hex' )
 
-        // Generate the device id
+        // What the device id *should* be
         const data                          = `${ userId }:${ salt }`
 
         // Set the device id to the hash
