@@ -230,7 +230,7 @@ class CookieHelper {
    */
   static GetRefreshTokenIdCookie( req, res ) {
     try {
-      if( req.signedCookies.refreshToken && !mongoose.isValidObjectId( req.signedCookies.refreshToken ) )
+      if( req.signedCookies.refreshTokenId && !mongoose.isValidObjectId( req.signedCookies.refreshTokenId ) )
         throw new CustomErrorHelper( req.t( 'refreshTokenId.invalid' ) )
 
       return req.signedCookies.refreshTokenId || null
