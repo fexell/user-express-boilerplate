@@ -8,22 +8,26 @@ morgan.token( 'ipAddress', ( req ) => UserHelper.GetIpAddress( req ) )
 morgan.token( 'userId', ( req ) => UserHelper.GetUserId( req ) || 'unknown' )
 morgan.token( 'statusCode', ( req, res ) => res.statusCode || res.status )
 
-const MorganMiddleware                      = morgan( ':method :url :statusCode :ipAddress :userId :user-agent :response-time', {
+const MorganMiddleware                      = morgan( ( tokens, req, res ) => {
+  return JSON.stringify({
+    method                                  : tokens.method( req, res ),
+    url                                     : tokens.url( req, res ),
+    statusCode                              : tokens.status( req, res ),
+    ipAddress                               : tokens.ipAddress( req, res ),
+    userId                                  : tokens.userId( req, res ),
+    userAgent                               : tokens['user-agent']( req, res ),
+    responseTime                            : Number( tokens['response-time']( req, res ) ),
+  })
+}, {
   stream                                    : {
     write                                   : async (message) => {
-      const log                             = message.trim().split( ' ' )
+      try {
+        const logObject                     = JSON.parse( message )
 
-      const logObject                       = {
-        method                              : log[ 0 ],
-        url                                 : log[ 1 ],
-        statusCode                          : Number( log[ 2 ] ),
-        ipAddress                           : log[ 3 ],
-        userId                              : log[ 4 ],
-        userAgent                           : log[ 5 ],
-        responseTime                        : Number( log[ 6 ] ),
+        await LogModel.create( logObject )
+      } catch( error ) {
+        console.error('Error logging to database:', error)
       }
-
-      await LogModel.create(logObject)
     },
   },
 } )

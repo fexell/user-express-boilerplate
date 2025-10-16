@@ -26,6 +26,8 @@ const LogSchema                             = new Schema({
   responseTime                              : {
     type                                    : Number,
   },
+}, {
+  timestamps                                : true,
 })
 
 const LogModel                              = mongoose.model( 'Log', LogSchema )
