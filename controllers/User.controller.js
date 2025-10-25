@@ -1,6 +1,7 @@
 
 
 import UserModel from '../models/User.model.js'
+import EmailVerificationModel from '../models/EmailVerification.model.js'
 
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import ResponseHelper from '../helpers/Response.helper.js'
@@ -58,6 +59,11 @@ class UserController {
 
       // Save the new user
       await newUser.save()
+
+      // Create an email verification token
+      await EmailVerificationModel.create( {
+        userId                            : newUser._id,
+      })
 
       // Return the new user
       return ResponseHelper.Success( res, req.t('user.created'), StatusCodes.CREATED, UserModel.SerializeUser( newUser ), 'user' )

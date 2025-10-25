@@ -62,6 +62,8 @@ import ErrorMiddleware from './middlewares/Error.middleware.js'
 // Use the global error middleware handler
 App.use( ErrorMiddleware.Handler )
 
+import './jobs/EmailVerification.job.js'
+
 // Start the server
 App.listen( PORT, async () => {
   console.log( `Server running in ${ NODE_ENV } mode on port ${ PORT }` )

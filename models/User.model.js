@@ -2,6 +2,8 @@ import crypto from 'crypto'
 import mongoose, { Schema } from 'mongoose'
 import { t } from 'i18next'
 
+import EmailVerificationModel from './EmailVerification.model.js'
+
 import CustomErrorHelper from '../helpers/Error.helper.js'
 import PasswordHelper from '../helpers/Password.helper.js'
 import StringHelper from '../helpers/String.helper.js'
@@ -97,10 +99,10 @@ const UserSchema                            = new Schema({
     type                                    : Boolean,
     default                                 : false,
   },
-  emailVerificationToken                    : {
+  /* emailVerificationToken                    : {
     type                                    : String,
     default                                 : crypto.randomBytes( 32 ).toString( 'hex' ),
-  }
+  } */
 }, {
   timestamps                                : true,
 })
@@ -122,7 +124,10 @@ UserSchema.pre('save', async function( next ) {
 
     if(this.isModified('email')) {
       this.isEmailVerified                  = false
-      this.emailVerificationToken           = crypto.randomBytes( 32 ).toString( 'hex' )
+      
+      await EmailVerificationModel.create({
+        userId                              : this._id,
+      })
     }
   }
 

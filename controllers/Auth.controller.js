@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import RefreshTokenModel from '../models/RefreshToken.model.js'
 import UserModel from '../models/User.model.js'
+import EmailVerificationModel from '../models/EmailVerification.model.js'
 
 import CookieHelper, { CookieNames } from '../helpers/Cookie.helper.js'
 import CustomErrorHelper from '../helpers/Error.helper.js'
@@ -169,12 +170,19 @@ class AuthController {
       else if( user.isEmailVerified )
         throw new CustomErrorHelper( req.t('email.alreadyVerified') )
 
+      const tokenRecord                     = await EmailVerificationModel.findOne({ userId: user._id, token: emailVerificationToken })
+
+      // If the email verification token was not found
+      if( !tokenRecord )
+        throw new CustomErrorHelper( req.t('email.token.record.notFound'), StatusCodes.NOT_FOUND )
+
       // Set the email verification token to null and set the email as verified
-      user.emailVerificationToken           = null
       user.isEmailVerified                  = true
 
       // Save the user
       await user.save()
+      // Delete the email verification token record
+      await tokenRecord.remove()
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('emailVerification.success') )
