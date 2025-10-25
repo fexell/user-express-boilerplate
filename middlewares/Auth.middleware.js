@@ -55,7 +55,7 @@ class AuthMiddleware {
     try {
 
       // First get the user id and access token
-      const userId                          = UserHelper.GetUserId( req, res )
+      const userId                          = UserHelper.GetUserId( req, res, next )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
 
       // Check if the user has the user id and access token stored in either session or cookie
@@ -142,7 +142,7 @@ class AuthMiddleware {
 
       // Define the user-related fields we want to verify against the session
       const fields                          = [
-        { name: 'userId', getter: () => UserHelper.GetUserId( req, res ) },
+        { name: 'userId', getter: () => UserHelper.GetUserId( req, res, next ) },
         { name: 'deviceId', getter: () => UserHelper.GetDeviceId( req, res ) },
         { name: 'accessToken', getter: () => TokenHelper.GetAccessToken( req, res ) },
         { name: 'refreshToken', getter: () => TokenHelper.GetRefreshToken( req, res ) },
@@ -238,7 +238,7 @@ class AuthMiddleware {
     try {
 
       // Get all stored user data
-      const userId                          = UserHelper.GetUserId( req, res )
+      const userId                          = UserHelper.GetUserId( req, res, next )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
       const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
 
@@ -266,7 +266,7 @@ class AuthMiddleware {
     try {
 
       // Get all stored user data
-      const userId                          = UserHelper.GetUserId( req, res )
+      const userId                          = UserHelper.GetUserId( req, res, next )
       const accessToken                     = TokenHelper.GetAccessToken( req, res )
       const refreshTokenId                  = TokenHelper.GetRefreshTokenId( req, res )
 
@@ -293,7 +293,7 @@ class AuthMiddleware {
       try {
 
         // Get the user's record (in the database)
-        const user                          = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ), true )
+        const user                          = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res, next ), true )
 
         // If roles is a string, and the user is not the required role
         if( typeof roles === 'string' && roles !== user.role )

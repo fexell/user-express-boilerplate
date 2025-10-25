@@ -43,11 +43,11 @@ class AuthController {
 
       // if the email is empty
       if( !email )
-        throw new CustomErrorHelper( req.t('email.required') )
+        throw new CustomErrorHelper( req.t('email.required'), StatusCodes.NOT_FOUND, 'email' )
 
       // if the password is empty
       else if( !password )
-        throw new CustomErrorHelper( req.t('password.required') )
+        throw new CustomErrorHelper( req.t('password.required'), StatusCodes.NOT_FOUND, 'password' )
 
       // Get the user record by email
       const user                            = await UserHelper.GetUserByEmail( req, res, email, true, true )
@@ -58,7 +58,7 @@ class AuthController {
 
       // If the password is incorrect
       if( !await PasswordHelper.Verify( user.password, password ) )
-        throw new CustomErrorHelper( req.t('password.invalid') )
+        throw new CustomErrorHelper( req.t('password.invalid'), StatusCodes.UNAUTHORIZED, 'password' )
 
       // JWT ID for the access token
       const jwtId                           = uuidv4()
@@ -105,7 +105,7 @@ class AuthController {
     try {
 
       // Get the user id and refresh token id
-      const userId                          = UserHelper.GetUserId( req, res )
+      const userId                          = UserHelper.GetUserId( req, res, next )
       const refreshToken                    = TokenHelper.GetRefreshToken( req, res )
 
       // If the user id and refresh token id are not found
@@ -156,7 +156,7 @@ class AuthController {
 
       // If the email was not found
       else if( !email )
-        throw new CustomErrorHelper( req.t('email.query.notFound'), StatusCodes.NOT_FOUND )
+        throw new CustomErrorHelper( req.t('email.query.notFound'), StatusCodes.NOT_FOUND, 'email' )
 
       // Attempt to find the user by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
@@ -196,7 +196,7 @@ class AuthController {
     try {
 
       // Get the user id
-      const userId                          = UserHelper.GetUserId( req, res )
+      const userId                          = UserHelper.GetUserId( req, res, next )
 
       // If the user id was not found
       if( !userId )
@@ -260,7 +260,7 @@ class AuthController {
    */
   static async RevokeAllRefreshTokens( req, res, next ) {
     try {
-      await TokenHelper.RevokeRefreshToken( req, res, 'All refresh tokens revoked', null, UserHelper.GetUserId( req, res ) )
+      await TokenHelper.RevokeRefreshToken( req, res, 'All refresh tokens revoked', null, UserHelper.GetUserId( req, res, next ) )
 
       return ResponseHelper.Success( res, req.t('refreshTokens.revoked') )
 
@@ -289,26 +289,26 @@ class AuthController {
 
       // If password field wasn't found
       if( !password )
-        throw new CustomErrorHelper( req.t('password.required') )
+        throw new CustomErrorHelper( req.t('password.required'), StatusCodes.NOT_FOUND, 'password' )
 
       // If the new password field wasn't found
       else if( !newPassword )
-        throw new CustomErrorHelper( req.t('newPassword.required') )
+        throw new CustomErrorHelper( req.t('newPassword.required'), StatusCodes.NOT_FOUND, 'newPassword' )
 
       // If the new password confirm field wasn't found
       else if( !newPasswordConfirm )
-        throw new CustomErrorHelper( req.t('newPasswordConfirm.required') )
+        throw new CustomErrorHelper( req.t('newPasswordConfirm.required'), StatusCodes.NOT_FOUND, 'newPasswordConfirm' )
 
       // If the password is the same as the new password
       else if( password === newPassword )
-        throw new CustomErrorHelper( req.t('password.sameAsOld') )
+        throw new CustomErrorHelper( req.t('password.sameAsOld'), StatusCodes.NOT_FOUND, 'newPassword' )
 
       // If the new password doesn't match the new password confirm
       else if( newPassword !== newPasswordConfirm )
-        throw new CustomErrorHelper( req.t('password.mismatch') )
+        throw new CustomErrorHelper( req.t('password.mismatch'), StatusCodes.NOT_FOUND, 'newPasswordConfirm' )
 
       // Attempt to find the user, by id
-      const user                            = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res ), true )
+      const user                            = await UserHelper.GetUserById( req, res, UserHelper.GetUserId( req, res, next ), true )
 
       // If the user was not found
       if( !user )
@@ -335,7 +335,7 @@ class AuthController {
       const jwtId                           = uuidv4()
 
       // Get the user id
-      const userId                          = UserHelper.GetUserId( req, res )
+      const userId                          = UserHelper.GetUserId( req, res, next )
 
       // Generate new access and refresh tokens
       await TokenHelper.GenerateNewAccessToken( req, res, userId, jwtId )

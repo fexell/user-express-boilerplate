@@ -15,10 +15,11 @@ class CustomErrorHelper extends Error {
    * @param {String} message 
    * @param {Number} status 
    */
-  constructor( message, status = StatusCodes.BAD_REQUEST ) {
+  constructor( message, status = StatusCodes.BAD_REQUEST, field = null ) {
     super( message )
 
     this.status                             = status
+    this.field                              = field
   }
 }
 

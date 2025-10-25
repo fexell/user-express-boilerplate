@@ -36,11 +36,11 @@ class UserHelper {
    * @param {Response} res Express response object
    * @returns {Mongoose.ObjectId}
    */
-  static GetUserId( req, res ) {
+  static GetUserId( req, res, next ) {
     try {
 
       // Get the user id from either req, session or cookie
-      return req.userId || req.session.userId || CookieHelper.GetUserIdCookie( req, res )
+      return req.userId || req.session.userId || CookieHelper.GetUserIdCookie( req, res, next )
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )

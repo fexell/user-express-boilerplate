@@ -44,7 +44,7 @@ class UserController {
       }                                     = req.body
 
       // If the passwords don't match
-      if(password !== passwordConfirm)
+      if( password !== passwordConfirm )
         throw new CustomErrorHelper( req.t('password.mismatch') )
 
       // Create the new user
