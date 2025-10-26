@@ -5,6 +5,7 @@ import { NODE_ENV } from '../configs/Environment.config.js'
 import CustomErrorHelper from './Error.helper.js'
 import TimeHelper from './Time.helper.js'
 import ResponseHelper from './Response.helper.js'
+import AuthController from '../controllers/Auth.controller.js'
 
 /**
  * @constant CookieNames Cookie Names
@@ -131,10 +132,10 @@ class CookieHelper {
    * @param {Response} res 
    * @returns {Mongoose.ObjectId} The user id
    */
-  static GetUserIdCookie( req, res ) {
+  static GetUserIdCookie( req, res, next ) {
     try {
       if( req.cookies.userId && !mongoose.isValidObjectId(req.cookies.userId) )
-        throw new CustomErrorHelper( req.t( 'user.id.invalid' ) )
+        return AuthController.Logout( req, res, next, true )
 
       return req.signedCookies.userId || null
     } catch ( error ) {

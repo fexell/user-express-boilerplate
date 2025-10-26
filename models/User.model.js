@@ -2,9 +2,12 @@ import crypto from 'crypto'
 import mongoose, { Schema } from 'mongoose'
 import { t } from 'i18next'
 
-import ErrorHelper from '../helpers/Error.helper.js'
+import EmailVerificationModel from './EmailVerification.model.js'
+
+import CustomErrorHelper from '../helpers/Error.helper.js'
 import PasswordHelper from '../helpers/Password.helper.js'
 import StringHelper from '../helpers/String.helper.js'
+import StatusCodes from '../helpers/StatusCodes.helper.js'
 
 const UserSchema                            = new Schema({
   email                                     : {
@@ -30,7 +33,7 @@ const UserSchema                            = new Schema({
 
         // Reject if username has leading/trailing spaces
         if( value !== value.trim() )
-          throw new ErrorHelper( t('username.invalidSpaces') )
+          throw new CustomErrorHelper( t('username.invalidSpaces') )
 
         // If the user is trying to create a new user
         if( this.isNew ) {
@@ -44,7 +47,7 @@ const UserSchema                            = new Schema({
 
           // If the user already exists, throw an error that the username is taken
           if( user )
-            throw new ErrorHelper( t('username.taken') )
+            throw new CustomErrorHelper( t('username.taken'), StatusCodes.CONFLICT, 'username' )
 
         // Else if the user is trying to update their username
         } else if( this.isModified( 'username' ) ) {
@@ -54,7 +57,7 @@ const UserSchema                            = new Schema({
 
           // If the username is different from the current username (not a different variation), throw an error
           if( currentUser && currentUser.username.toLowerCase() !== value.toLowerCase() )
-            throw new ErrorHelper( t('username.variation') )
+            throw new CustomErrorHelper( t('username.variation'), StatusCodes.CONFLICT, 'username' )
         }
 
         // If the username is not taken, or the username is the same as the current username (a different variation), return true
@@ -67,14 +70,14 @@ const UserSchema                            = new Schema({
     required                                : [ true, t('forename.required') ],
     trim                                    : true,
     minlength                               : [ 3, t('forename.minlength') ],
-    match                                   : [ /^[a-zA-Z]+$/, t('forename.invalid') ],
+    match                                   : [ /^[a-zA-Zåäö]+$/i, t('forename.invalid') ],
   },
   surname                                   : {
     type                                    : String,
     required                                : [ true, t('surname.required') ],
     trim                                    : true,
     minlength                               : [ 3, t('surname.minlength') ],
-    match                                   : [ /^[a-zA-Z]+$/, t('surname.invalid') ],
+    match                                   : [ /^[a-zA-Zåäö]+$/i, t('surname.invalid') ],
   },
   password                                  : {
     type                                    : String,
@@ -96,10 +99,10 @@ const UserSchema                            = new Schema({
     type                                    : Boolean,
     default                                 : false,
   },
-  emailVerificationToken                    : {
+  /* emailVerificationToken                    : {
     type                                    : String,
     default                                 : crypto.randomBytes( 32 ).toString( 'hex' ),
-  }
+  } */
 }, {
   timestamps                                : true,
 })
@@ -121,7 +124,10 @@ UserSchema.pre('save', async function( next ) {
 
     if(this.isModified('email')) {
       this.isEmailVerified                  = false
-      this.emailVerificationToken           = crypto.randomBytes( 32 ).toString( 'hex' )
+      
+      await EmailVerificationModel.create({
+        userId                              : this._id,
+      })
     }
   }
 
@@ -135,7 +141,7 @@ UserSchema.pre('save', async function( next ) {
     this.password                           = await PasswordHelper.Hash( this.password )
 
   if(this.modifiedPaths().length === 0)
-    return next(new ErrorHelper( t('user.noChanges'), 400 ))
+    return next(new CustomErrorHelper( t('user.noChanges'), 400 ))
 
   return next()
 })
