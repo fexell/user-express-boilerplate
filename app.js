@@ -62,6 +62,7 @@ import ErrorMiddleware from './middlewares/Error.middleware.js'
 // Use the global error middleware handler
 App.use( ErrorMiddleware.Handler )
 
+// Import the email verification job
 import './jobs/EmailVerification.job.js'
 
 // Start the server

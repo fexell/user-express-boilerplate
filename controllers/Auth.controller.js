@@ -146,7 +146,7 @@ class AuthController {
     try {
 
       // Get the email verification token from the parameter
-      const emailVerificationToken          = req.params.token
+      const emailVerificationToken          = req.params.token || req.body?.token
 
       // Get the email from the query or the form body
       const email                           = req.query?.email || req.body?.email
@@ -181,6 +181,7 @@ class AuthController {
 
       // Save the user
       await user.save()
+      
       // Delete the email verification token record
       await tokenRecord.remove()
 
