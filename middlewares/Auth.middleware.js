@@ -354,14 +354,13 @@ class AuthMiddleware {
    * @param {NextFunction} next 
    * @returns {NextFunction}
    */
-  static async AccountInactive( req, res, next, email ) {
+  static async AccountInactive( req, res, next ) {
     try {
 
       // Get the user's email
       const email                           = await UserHelper.GetUserEmail( req, res ) ||
         req.body?.email ||
-        req.params?.email ||
-        email
+        req.params?.email
 
       // If the email was not found
       if( !email )

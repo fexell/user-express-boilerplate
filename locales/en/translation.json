@@ -1,5 +1,5 @@
 {
-  "user.created": "Sign up was successful. You now need to verify your email address, before you can log in.",
+  "user.created": "Sign up was successful. Verify your email address.",
 
   "user.notFound": "User not found.",
   "user.alreadyLoggedIn": "You are already logged in.",

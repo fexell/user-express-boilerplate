@@ -25,6 +25,8 @@ const refreshLocks                          = new Map()
  * @method UserHelper.GetUserAgent Get the user's user agent (browser information)
  * @method UserHelper.GenerateDeviceId Generates unique device id
  * @method UserHelper.GetDeviceId Get the user's device id
+ * @method UserHelper.ValidateDeviceId Validates whether the provided device ID matches the expected one
+ * @method UserHelper.WithUserLock Acquires a lock on the given user ID and executes the given function, handling race conditions
  * @method UserHelper.GetUserById Get the user's record from MongoDB by id
  * @method UserHelper.GetUserByEmail Get the user's record from MongoDB by email
  */
