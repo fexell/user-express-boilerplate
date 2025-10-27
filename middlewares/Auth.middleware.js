@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import AuthController from '../controllers/Auth.controller.js'
 
+import EmailVerificationModel from '../models/EmailVerification.model.js'
 import RefreshTokenModel from '../models/RefreshToken.model.js'
 import TokenBlacklistModel from '../models/TokenBlacklist.model.js'
 import UserModel from '../models/User.model.js'
@@ -353,11 +354,14 @@ class AuthMiddleware {
    * @param {NextFunction} next 
    * @returns {NextFunction}
    */
-  static async AccountInactive( req, res, next ) {
+  static async AccountInactive( req, res, next, email ) {
     try {
 
       // Get the user's email
-      const email                           = await UserHelper.GetUserEmail( req, res ) || req.body?.email
+      const email                           = await UserHelper.GetUserEmail( req, res ) ||
+        req.body?.email ||
+        req.params?.email ||
+        email
 
       // If the email was not found
       if( !email )

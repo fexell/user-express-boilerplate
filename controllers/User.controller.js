@@ -61,8 +61,8 @@ class UserController {
       await newUser.save()
 
       // Create an email verification token
-      await EmailVerificationModel.create( {
-        userId                            : newUser._id,
+      await EmailVerificationModel.create({
+        userId                              : newUser._id,
       })
 
       // Return the new user

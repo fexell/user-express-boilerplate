@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import requestIp from 'request-ip'
 import { Mongoose } from 'mongoose'
 
+import EmailVerificationModel from '../models/EmailVerification.model.js'
 import UserModel from '../models/User.model.js'
 
 import { DEVICE_ID_SECRET } from '../configs/Environment.config.js'
@@ -326,6 +327,29 @@ class UserHelper {
       return !lean
         ? await UserModel.findOne( query )
         : await UserModel.findOne( query ).lean()
+
+    } catch ( error ) {
+      return ResponseHelper.CatchError( res, error )
+    }
+  }
+
+  static async GetEmailVerificationTokenRecord( req, res, lean = false ) {
+    try {
+
+      // Attempt to find the email verification token record
+      return !lean
+      ? await EmailVerificationModel.findOne({
+        $or: [
+          { userId: this.GetUserId( req, res ) },
+          { token: req.params.token || req.body?.token },
+        ],
+      })
+      : await EmailVerificationModel.findOne({
+        $or: [
+          { userId: this.GetUserId( req, res ) },
+          { token: req.params.token || req.body?.token },
+        ],
+      }).lean()
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )

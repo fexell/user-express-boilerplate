@@ -26,9 +26,12 @@
   "email.taken": "Email is already in use.",
   "email.notVerified": "Your email address is not yet verified.",
   "email.alreadyVerified": "Your email address is already verified.",
+  "email.notFound": "Email not found.",
   "email.token.notFound": "Email verification token not found.",
   "email.query.notFound": "Email query not found.",
   "email.token.record.notFound": "Email verification token record not found.",
+
+  "emailVerification.success": "Email verification was successful.",
 
   "username.required": "Username is required.",
   "username.invalid": "Username is invalid.",

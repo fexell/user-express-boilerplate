@@ -124,10 +124,6 @@ UserSchema.pre('save', async function( next ) {
 
     if(this.isModified('email')) {
       this.isEmailVerified                  = false
-      
-      await EmailVerificationModel.create({
-        userId                              : this._id,
-      })
     }
   }
 

@@ -45,9 +45,7 @@ AuthRouter.post( '/logout', [
  * @description Verify a user's email
  * @returns {String} A success message
  */
-AuthRouter.put( '/verify/email/:token', [
-  AuthMiddleware.AccountInactive,
-], AuthController.VerifyEmail )
+AuthRouter.put( '/email/verify/:token', AuthController.VerifyEmail )
 
 /**
  * @route GET /api/auth/find/units

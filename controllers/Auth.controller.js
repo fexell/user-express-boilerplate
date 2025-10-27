@@ -148,33 +148,30 @@ class AuthController {
       // Get the email verification token from the parameter
       const emailVerificationToken          = req.params.token || req.body?.token
 
-      // Get the email from the query or the form body
-      const email                           = req.query?.email || req.body?.email
-
       // If the email verification token was not found
       if( !emailVerificationToken )
         throw new CustomErrorHelper( req.t('email.token.notFound'), StatusCodes.NOT_FOUND )
 
-      // If the email was not found
-      else if( !email )
-        throw new CustomErrorHelper( req.t('email.query.notFound'), StatusCodes.NOT_FOUND, 'email' )
+      // Attempt to find the email verification token record
+      const tokenRecord                     = await EmailVerificationModel.findOne({ token: emailVerificationToken })
 
-      // Attempt to find the user by their email
-      const user                            = await UserHelper.GetUserByEmail( req, res, email )
+      // If the email verification token was not found
+      if( !tokenRecord )
+        throw new CustomErrorHelper( req.t('email.token.record.notFound'), StatusCodes.NOT_FOUND )
+
+      // Attempt to find the user by their user id
+      const user                            = await UserModel.findOne({ _id: tokenRecord.userId })
 
       // If the user was not found
       if( !user )
         throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
 
+      else if( !user.isActive )
+        throw new CustomErrorHelper( req.t('user.notActive') )
+
       // If the user's email is already verified
       else if( user.isEmailVerified )
         throw new CustomErrorHelper( req.t('email.alreadyVerified') )
-
-      const tokenRecord                     = await EmailVerificationModel.findOne({ userId: user._id, token: emailVerificationToken })
-
-      // If the email verification token was not found
-      if( !tokenRecord )
-        throw new CustomErrorHelper( req.t('email.token.record.notFound'), StatusCodes.NOT_FOUND )
 
       // Set the email verification token to null and set the email as verified
       user.isEmailVerified                  = true
@@ -183,7 +180,7 @@ class AuthController {
       await user.save()
       
       // Delete the email verification token record
-      await tokenRecord.remove()
+      await tokenRecord.deleteOne()
 
       // Return the success response
       return ResponseHelper.Success( res, req.t('emailVerification.success') )
