@@ -297,8 +297,8 @@ class TokenHelper {
 
       // Generate a new device id
       const {
-        deviceId: newDeviceId,
-        salt: newSalt
+        deviceId                            : newDeviceId,
+        salt                                : newSalt
       }                                     = UserHelper.GenerateDeviceId( req, res, uid, true )
 
       // Get the user agent
@@ -499,9 +499,9 @@ class TokenHelper {
 
       // Return the amount of revoked tokens, and the revoked tokens id
       return {
-        success: true,
-        revokedTokens: tokenIdsToDelete.length,
-        revokedTokenIds: tokenIdsToDelete.filter( id => id ).map( token => token.toString() ),
+        success                             : true,
+        revokedTokens                       : tokenIdsToDelete.length,
+        revokedTokenIds                     : tokenIdsToDelete.filter( id => id ).map( token => token.toString() ),
       }
       
     } catch ( error ) {

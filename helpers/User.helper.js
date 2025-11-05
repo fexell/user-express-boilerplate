@@ -161,7 +161,7 @@ class UserHelper {
       }
 
       // Store in request and session for easy access
-      req.deviceId                            = req.session.deviceId                        = deviceId
+      req.deviceId                          = req.session.deviceId                        = deviceId
 
       // Return the hashed device id
       return { deviceId, salt }
