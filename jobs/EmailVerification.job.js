@@ -28,6 +28,7 @@ cron.schedule( '*/5 * * * *', async () => {
 
         await EmailVerificationModel.create({
           userId                            : user._id,
+          token                             : token,
         })
 
         console.log( `Refreshed email verification token for user ${ user.email }` )

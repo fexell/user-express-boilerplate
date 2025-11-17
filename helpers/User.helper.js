@@ -340,18 +340,18 @@ class UserHelper {
 
       // Attempt to find the email verification token record
       return !lean
-      ? await EmailVerificationModel.findOne({
-        $or: [
-          { userId: this.GetUserId( req, res ) },
-          { token: req.params.token || req.body?.token },
-        ],
-      })
-      : await EmailVerificationModel.findOne({
-        $or: [
-          { userId: this.GetUserId( req, res ) },
-          { token: req.params.token || req.body?.token },
-        ],
-      }).lean()
+        ? await EmailVerificationModel.findOne({
+          $or: [
+            { userId: this.GetUserId( req, res ) },
+            { token: req.params.token || req.body?.token },
+          ],
+        })
+        : await EmailVerificationModel.findOne({
+          $or: [
+            { userId: this.GetUserId( req, res ) },
+            { token: req.params.token || req.body?.token },
+          ],
+        }).lean()
 
     } catch ( error ) {
       return ResponseHelper.CatchError( res, error )

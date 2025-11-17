@@ -22,10 +22,10 @@ class ErrorMiddleware {
    * @returns {Object}
    */
   static Handler( error, req, res, next ) {
-
+    
     // If the error is a mongoose validation error
     if( error instanceof mongoose.Error.ValidationError )
-      return ResponseHelper.Error( res, Object.values( error.errors )[ 0 ].message, 400 ) // Handle one error at a time
+      return ResponseHelper.Error( res, req.t( Object.values( error.errors )[ 0 ].properties.message ), 400 ) // Handle one error at a time
 
     // If in development mode, console log the error
     if( NODE_ENV === 'development' )

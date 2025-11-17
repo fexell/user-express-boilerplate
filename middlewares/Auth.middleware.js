@@ -334,8 +334,12 @@ class AuthMiddleware {
       // Get the user's record, by their email
       const user                            = await UserHelper.GetUserByEmail( req, res, email )
 
+      // If the user was not found
+      if( !user )
+        throw new CustomErrorHelper( req.t('user.notFound'), StatusCodes.NOT_FOUND )
+
       // If the user's email is not verified
-      if( !user.isEmailVerified )
+      else if( !user?.isEmailVerified )
         throw new CustomErrorHelper( req.t('email.notVerified'), StatusCodes.FORBIDDEN )
 
       // Continue to the next middleware or route

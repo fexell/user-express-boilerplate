@@ -12,10 +12,20 @@ import StatusCodes from '../helpers/StatusCodes.helper.js'
 const UserSchema                            = new Schema({
   email                                     : {
     type                                    : String,
-    required                                : [ true, t('email.required') ],
-    unique                                  : [ true, t('email.taken') ],
+    required                                : [ true, 'email.required' ],
     trim                                    : true,
     lowercase                               : true,
+    validate                                : {
+      validator                             : async function( value ) {
+        const existing                      = await this.constructor.findOne( { email : value } )
+
+        if( !existing )
+          return true
+
+        return existing._id.equals( this._id )
+      },
+      message                               : 'email.taken',
+    }
   },
   username                                  : {
     type                                    : String,
